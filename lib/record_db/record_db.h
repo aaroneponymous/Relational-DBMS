@@ -46,4 +46,10 @@ namespace dbms::record_codec {
     
     // Variable Length Serialization & Deserialization
 
+    // Utility Functions
+    void print_record(const Record& record);
+
+    // Function to clean up dynamically allocated Records
+    void cleanup_record(Record& record);
+
 }
