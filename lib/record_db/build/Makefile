@@ -153,6 +153,30 @@ record_db.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/RecordDBExample.dir/build.make CMakeFiles/RecordDBExample.dir/record_db.cpp.s
 .PHONY : record_db.cpp.s
 
+record_db_example.o: record_db_example.cpp.o
+.PHONY : record_db_example.o
+
+# target to build an object file
+record_db_example.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/RecordDBExample.dir/build.make CMakeFiles/RecordDBExample.dir/record_db_example.cpp.o
+.PHONY : record_db_example.cpp.o
+
+record_db_example.i: record_db_example.cpp.i
+.PHONY : record_db_example.i
+
+# target to preprocess a source file
+record_db_example.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/RecordDBExample.dir/build.make CMakeFiles/RecordDBExample.dir/record_db_example.cpp.i
+.PHONY : record_db_example.cpp.i
+
+record_db_example.s: record_db_example.cpp.s
+.PHONY : record_db_example.s
+
+# target to generate assembly for a file
+record_db_example.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/RecordDBExample.dir/build.make CMakeFiles/RecordDBExample.dir/record_db_example.cpp.s
+.PHONY : record_db_example.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -165,6 +189,9 @@ help:
 	@echo "... record_db.o"
 	@echo "... record_db.i"
 	@echo "... record_db.s"
+	@echo "... record_db_example.o"
+	@echo "... record_db_example.i"
+	@echo "... record_db_example.s"
 .PHONY : help
 
 
