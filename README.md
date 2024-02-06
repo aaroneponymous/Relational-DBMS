@@ -1,7 +1,7 @@
 # Data-Management-Sys-Project-1
 
 $$
-\LARGE\textit{Project Structure}
+\LARGE{Project Structure\n}
 $$
 
 Root directory of the project, “project_1/” consists of the following:
