@@ -7,8 +7,12 @@ using namespace dbms::record_codec;
 int main() {
 
     // Example records
-    Record record_1 = {"Marzook", "Riverview Campus", "mbaig2"};
-    Record record_2 = {"Aaron", "Innovation", "apaul9"};
+    Record record_1 = {"Marzook\0\0", "Riverview", "mbaig2"};
+    Record record_2 = {"Aaron\0\0\0\0", "Inno\0\0\0\0\0", "apaul9"};
+
+    std::cout << fixed_len_sizeof(&record_1) << std::endl;;
+    std::cout << fixed_len_sizeof(&record_2) << std::endl;;
+
 
     // Calculate the buffer size needed for the records
     int bufferSize = fixed_len_sizeof(&record_1) + fixed_len_sizeof(&record_2);

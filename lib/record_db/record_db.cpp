@@ -28,7 +28,11 @@ namespace dbms::record_codec {
     };
 
     int fixed_len_sizeof(Record *record) {
-        return sizeof(char) * record->size() * ATTRIBUTE_FIXED_LENGTH;
+        int fixed_size = 0;
+        for (const auto& entry: *record) {
+            fixed_size += sizeof(char) * strlen(entry);
+        }
+        return fixed_size;
     }
 
     /**
@@ -40,6 +44,7 @@ namespace dbms::record_codec {
     * locally declared as char* byte_buffer
     * 
     * Writing Bytestream from vector<V> Record to static_cast<*char> buf
+    * 
     * 
     * std::memcpy: void *memcpy(void *__restrict__ __dest, const void *__restrict__ __src, size_t __n) noexcept(true)
     * Copy the n bytes (size to be copied: ATTRIBUTE_FIXED_LENGTH) in src "entry (V)" to  dest "byte_buffer" 
@@ -71,12 +76,23 @@ namespace dbms::record_codec {
     * After each iteration of the entry V in vector<V> Record, increment the byte_buffer by the ATTRIBUTE_FIXED_LENGTH
    */
 
+    // FIXME: Don't allocate ATTRIBUTE_FIXED_LENGTH for entry in the buffer when copying the contents over : Unused Space
+    // NOTE: Initial Fixes Done
+
     void fixed_len_write(Record *record, void *buf) {
         // @Parameter 2: void type *buf casted to char* type
         char* byte_buffer = static_cast<char*>(buf);
 
         for (const auto& entry: *record) {
             if (strlen(entry) > ATTRIBUTE_FIXED_LENGTH) {
+                std::cerr << "Error: Entry: " << entry << " exceeded ATTRIBUTE_FIXED_LENGTH" << std::endl;
+            }
+            std::memcpy(byte_buffer, entry, strlen(entry));
+            byte_buffer += strlen(entry);
+
+
+            // NOTE: Old Implementation which allocates ATTRIBUTE_FIXED_LENGTH for entry in the buffer
+            /* if (strlen(entry) > ATTRIBUTE_FIXED_LENGTH) {
                 std::cerr << "Error: Entry " << entry << " exceeded ATTRIBUTE_FIXED_LENGTH" << std::endl;
             }
             else {
@@ -84,7 +100,7 @@ namespace dbms::record_codec {
                 std::memcpy(byte_buffer, entry, ATTRIBUTE_FIXED_LENGTH);
                 // Offset the byte_buffer by ATTRIBUTE_FIXED_LENGTH to copy next entry
                 byte_buffer += ATTRIBUTE_FIXED_LENGTH;
-            }
+            } */
         }
 
         /* 
@@ -125,6 +141,7 @@ namespace dbms::record_codec {
     * Deserializes `size` bytes from the buffer, `buf`, and
     * stores the record in `record`.
     */
+   // FIXME: Deserialization Function needs to be reimplemented after changes to the fixed_len_write
     void fixed_len_read(void *buf, int size, Record *record) {
         char* byte_buffer = static_cast<char*>(buf);
         int num_attributes = size / ATTRIBUTE_FIXED_LENGTH; // Calculate the number of attributes
