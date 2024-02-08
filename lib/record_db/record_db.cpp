@@ -28,7 +28,12 @@ namespace dbms::record_codec {
     };
 
     int fixed_len_sizeof(Record *record) {
-        return sizeof(char) * record->size() * ATTRIBUTE_FIXED_LENGTH;
+        auto fixed_size = 0;
+        for (const auto& entry: *record) {
+            fixed_size += sizeof(char) * strlen(entry);
+        }
+        std::cout << fixed_size << std::endl;
+        return fixed_size;
     }
 
     /**
@@ -40,6 +45,7 @@ namespace dbms::record_codec {
     * locally declared as char* byte_buffer
     * 
     * Writing Bytestream from vector<V> Record to static_cast<*char> buf
+    * 
     * 
     * std::memcpy: void *memcpy(void *__restrict__ __dest, const void *__restrict__ __src, size_t __n) noexcept(true)
     * Copy the n bytes (size to be copied: ATTRIBUTE_FIXED_LENGTH) in src "entry (V)" to  dest "byte_buffer" 
@@ -71,60 +77,70 @@ namespace dbms::record_codec {
     * After each iteration of the entry V in vector<V> Record, increment the byte_buffer by the ATTRIBUTE_FIXED_LENGTH
    */
 
+    // FIXME: Don't allocate ATTRIBUTE_FIXED_LENGTH for entry in the buffer when copying the contents over : Unused Space
+    // NOTE: Initial Fixes Done
+
     void fixed_len_write(Record *record, void *buf) {
         // @Parameter 2: void type *buf casted to char* type
         char* byte_buffer = static_cast<char*>(buf);
 
         for (const auto& entry: *record) {
-            if (strlen(entry) > ATTRIBUTE_FIXED_LENGTH) {
-                std::cerr << "Error: Entry " << entry << " exceeded ATTRIBUTE_FIXED_LENGTH" << std::endl;
+            auto entry_length = std::strlen(entry);
+
+            if (entry_length <= ATTRIBUTE_FIXED_LENGTH) {
+                std::memcpy(byte_buffer, entry, entry_length);
+                if (entry_length < ATTRIBUTE_FIXED_LENGTH) {
+                    std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0', 
+                    ATTRIBUTE_FIXED_LENGTH - entry_length);
+                }
             }
             else {
-                // Copy the bytes in entry to the byte_buffer
-                std::memcpy(byte_buffer, entry, ATTRIBUTE_FIXED_LENGTH);
-                // Offset the byte_buffer by ATTRIBUTE_FIXED_LENGTH to copy next entry
-                byte_buffer += ATTRIBUTE_FIXED_LENGTH;
+            // Handle the case where attribute length exceeds ATTRIBUTE_FIXED_LENGTH
+            // Option 1: Log an error/warning
+            // Option 2: Skip this attribute with or without marking its space
+            // This example simply logs and skips to the next attribute space
+                std::cerr << "Attribute length exceeds fixed limit. Truncation or specific handling required.\n";
+                std::memset(byte_buffer, '\0', ATTRIBUTE_FIXED_LENGTH); // Optionally mark the space as unused
             }
-        }
 
-        /* 
+            byte_buffer += ATTRIBUTE_FIXED_LENGTH;
+        }
+    }
+
+        /* for (const auto& entry: *record) {
+            if (strlen(entry) > ATTRIBUTE_FIXED_LENGTH) {
+                std::cerr << "Error: Entry: " << entry << " exceeded ATTRIBUTE_FIXED_LENGTH" << std::endl;
+            }
+            std::memcpy(byte_buffer, entry, strlen(entry));
+            byte_buffer += strlen(entry);
+
+
+            // NOTE: Old Implementation which allocates ATTRIBUTE_FIXED_LENGTH for entry in the buffer
+            // if (strlen(entry) > ATTRIBUTE_FIXED_LENGTH) {
+            //     std::cerr << "Error: Entry " << entry << " exceeded ATTRIBUTE_FIXED_LENGTH" << std::endl;
+            // }
+            // else {
+            //     // Copy the bytes in entry to the byte_buffer
+            //     std::memcpy(byte_buffer, entry, ATTRIBUTE_FIXED_LENGTH);
+            //     // Offset the byte_buffer by ATTRIBUTE_FIXED_LENGTH to copy next entry
+            //     byte_buffer += ATTRIBUTE_FIXED_LENGTH;
+            // }
+
+        } */
+
         // Commented Out: Can be used if the records might contain entries
         //                larger than the fixed length as defined in 
         //                ATTRIBUTE_FIXED_LENGTH constexpr
         // 
         // Loop over each value/entry (char* V) in Record *record vector<V>
-        for (auto& entry: *record) {
-            size_t entry_length = std::strlen(entry);
-            // 3 Cases to be Handled
-            // 1. entry size == ATTRIBUTE_FIXED_LENGTH
-            if (sizeof(entry) <= ATTRIBUTE_FIXED_LENGTH) {
-                // Copy the bytes of entry to byte_buffer
-                std::memcpy(byte_buffer, entry, ATTRIBUTE_FIXED_LENGTH);
-                // 2. entry len < ATTRIBUTE_FIXED_LENGTH
-                if (sizeof(entry) < ATTRIBUTE_FIXED_LENGTH) {
-                    // set the unused bytes to null char
-                    std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0',
-                    ATTRIBUTE_FIXED_LENGTH - sizeof(entry));
-                }
-            }
-            // 3. entry len > ATTRIBUTE_FIXED_LENGTH
-            else {
-                // Error Handling: 
-                std::cerr << "Error: Entry size exceeds the size of ATTRIBUTE_FIXED_LENGTH" << std::endl;
-                std::memset(byte_buffer, '\0', ATTRIBUTE_FIXED_LENGTH);
-            }
-
-            // Increment the Pointer of byte_buffer
-            byte_buffer += ATTRIBUTE_FIXED_LENGTH;
-
-        } */
-    }
+        
 
     // Functions for Deserializing Records
     /**
     * Deserializes `size` bytes from the buffer, `buf`, and
     * stores the record in `record`.
     */
+   // FIXME: Deserialization Function needs to be reimplemented after changes to the fixed_len_write
     void fixed_len_read(void *buf, int size, Record *record) {
         char* byte_buffer = static_cast<char*>(buf);
         int num_attributes = size / ATTRIBUTE_FIXED_LENGTH; // Calculate the number of attributes
@@ -148,6 +164,10 @@ namespace dbms::record_codec {
    
     // Variable Length Serialization & Deserialization
 
+// NOTE: Variable Length Serialization: Create a Meta Header based on the entries in the record : strlen(entries) int
+// NOTE: Add Offsets, You don't need to know the schema to create offsets
+// NOTE: But how would you differentiate records that are Variable or Fixed when Insertion
+// NOTE: Depends on the relation when inserting records, you choose the specific function 
 
 
     // Utility Functions
