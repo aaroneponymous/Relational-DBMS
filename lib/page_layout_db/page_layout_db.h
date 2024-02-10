@@ -1,14 +1,16 @@
 #pragma once
 #include "../record_db/record_db.h"
 
-namespace dbms::page_layout {
+namespace dbms::page {
 
     using namespace dbms::record_codec;
     
-    struct Page {
-        void *data;
-        int page_size;
-        int slot_size;
+    
+    struct Page 
+    {
+        void *data_;
+        int page_size_;
+        int slot_size_;
     };
 
     /**
