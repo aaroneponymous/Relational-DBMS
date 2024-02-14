@@ -13,9 +13,7 @@ using namespace dbms::record_codec;
 typedef std::vector<Record*> Records;
 
 void read_csv(const std::string& filename, Page *page, std::vector<int> &record_id) {
-    Records records;
     std::ifstream file(filename);
-
     std::string line;
     while (std::getline(file, line)) {
         std::stringstream line_stream(line);
@@ -27,11 +25,13 @@ void read_csv(const std::string& filename, Page *page, std::vector<int> &record_
             std::strcpy(cell_str, cell.c_str());
             record.push_back(cell_str);
             // FIXME: Memory Leak here?
-            // [x]: Fixed this was the dynamic allocation I was not freeing
-            delete cell_str;
+            // [x]: Fixed this was the dynamic allocation I was not deleting
+            // delete[] cell_str;
         }
 
+        print_record(record);
         record_id.push_back(add_fixed_len_page(page, &record));
+        cleanup_record(record);
     }
 }
 
@@ -66,13 +66,14 @@ int main() {
     }
 
 
-/*     // Allocated Page* page_1
-    Page* page_1 = new Page;
+    // Allocated Page* page_1
+/*     Page* page_1 = new Page;
     init_fixed_len_page(page_1, 5402, 102);
     int* slot_dir = get_slot_directory(page_1);
 
-    Record record_1 = {"mbaig2", "Marzook", "Riverview"};
-    Record record_2 = {"apaul9", "Aaron", "Innovation"};
+    Record record_1 = {"dbd12","Shelby","Terrell","Male","1945-10-26"};
+
+    Record record_2 = {"dbd13","Phillip","Summers","Female","1910-03-24"};
 
     int slot_r1 = add_fixed_len_page(page_1, &record_1);
     int slot_r2 = add_fixed_len_page(page_1, &record_2);
@@ -90,8 +91,8 @@ int main() {
     print_record(record_2_deserialized);
 
     cleanup_record(record_1_deserialized);
-    cleanup_record(record_2_deserialized); 
- */
+    cleanup_record(record_2_deserialized);  */
+
 
 
 
