@@ -166,14 +166,9 @@ namespace dbms::page {
         int* slot_dir = get_slot_directory(page);
         int record_offset = slot_dir[slot];
         // [x]: Fixed the issue of not being able to retrieve serialized data
-        // The problem was that I was reinterpret_cast(ing) the void*
-        // and adding the offset as an argument to function // BUG: BUT WHY?
-        char* buffer = static_cast<char *>(page->data_);
-        char* offset_buffer = buffer + record_offset;
-
         // Deserialize the buffer and store in record
         // [x]: Testing set size to 5 * 10 = 50
-        fixed_len_read(offset_buffer, 50, r);
+        fixed_len_read(reinterpret_cast<char*>(page->data_) + record_offset, 50, r);
 
     }
 
