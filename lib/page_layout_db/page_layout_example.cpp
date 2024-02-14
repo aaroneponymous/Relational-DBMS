@@ -26,6 +26,9 @@ void read_csv(const std::string& filename, Page *page, std::vector<int> &record_
             char* cell_str = new char[cell.length() + 1];
             std::strcpy(cell_str, cell.c_str());
             record.push_back(cell_str);
+            // FIXME: Memory Leak here?
+            // [x]: Fixed this was the dynamic allocation I was not freeing
+            delete cell_str;
         }
 
         record_id.push_back(add_fixed_len_page(page, &record));
@@ -48,10 +51,8 @@ int main() {
 
     
     std::vector<int> record_id;
-    Record record_write;
     Page* page_1 = new Page;
     init_fixed_len_page(page_1, 5402, 102);
-    int* slot_dir = get_slot_directory(page_1);
     std::string filename = "people-100.csv";
     read_csv(filename, page_1, record_id);
 
@@ -157,8 +158,8 @@ int main() {
     cleanup_record(record_write);
     record_id.clear(); */
 
-    // std::memset(reinterpret_cast<char*>(page_1->data_), 0, page_1->page_size_);
-
+    
+    std::memset(reinterpret_cast<char*>(page_1->data_), 0, page_1->page_size_);
     delete[] reinterpret_cast<char*>(page_1->data_);
     delete page_1;
 
