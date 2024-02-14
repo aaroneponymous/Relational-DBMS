@@ -145,17 +145,8 @@ namespace dbms::page {
      */
     void write_fixed_len_page(Page *page, int slot, Record *r)
     {
-        
-
-
-        
-
-
-
-        
-
-
-
+        int* slot_dir = get_slot_directory(page);
+        fixed_len_write(r, reinterpret_cast<char*>(page->data_) + slot_dir[slot]);
     }
     
     /**
@@ -164,13 +155,6 @@ namespace dbms::page {
     void read_fixed_len_page(Page *page, int slot, Record *r) 
     {
         int* slot_dir = get_slot_directory(page);
-        // int record_offset = slot_dir[slot];
-        // [x]: Fixed the issue of not being able to retrieve serialized data
-        // The problem was that I was reinterpret_cast(ing) the void*
-        // and adding the offset as an argument to function // BUG: BUT WHY?
-        /* char* buffer = static_cast<char *>(page->data_);
-        char* offset_buffer = buffer + record_offset; */
-
         // Deserialize the buffer and store in record
         // [x]: Testing set size to 5 * 10 = 50
         fixed_len_read(reinterpret_cast<char*>(page->data_) + slot_dir[slot], 50, r);
@@ -180,10 +164,10 @@ namespace dbms::page {
 
     // Assume each slot stores an offset as an int
     int* get_slot_directory(Page* page) {
-        // NOTE: Cast the void* data_ to char* before using it
         char* data = static_cast<char*>(page->data_);
         // The slot directory starts at the end of the page data minus 
         // the space needed for the slot count
+        // NOTE: Make sure to reinterpret the cast of void* page->data_
         return reinterpret_cast<int*>(data + page->page_size_ - 
                     page->slot_size_ * sizeof(int));
     }

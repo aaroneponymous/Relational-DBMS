@@ -56,7 +56,6 @@ int main() {
     std::string filename = "people-100.csv";
     read_csv(filename, page_1, record_id);
 
-
     for (auto entry_id: record_id)
     {
         Record record_deserialized;
