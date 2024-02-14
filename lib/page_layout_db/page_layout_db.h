@@ -1,10 +1,7 @@
-#pragma once
 #include "../record_db/record_db.h"
-
 namespace dbms::page {
 
     using namespace dbms::record_codec;
-    
     
     struct Page 
     {
@@ -12,6 +9,15 @@ namespace dbms::page {
         int page_size_;
         int slot_size_;
     };
+
+    int* get_slot_directory(Page* page);
+    
+    /**
+     * Length of a Attributes in a Record as an inlined 
+     * constexpr with type size_t
+    */
+
+    inline constexpr std::size_t ATTRIBUTES_IN_RECORD = 100;
 
     /**
      * Initializes a page using the given slot size
@@ -45,4 +51,7 @@ namespace dbms::page {
      * Read a record from the page from a given slot.
      */
     void read_fixed_len_page(Page *page, int slot, Record *r);
+
+    
+    
 }

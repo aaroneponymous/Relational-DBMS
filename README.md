@@ -14,6 +14,12 @@ Root directory of the project, “project_1/” consists of the following:
         - Source CMakeLists.txt path from pwd: ../CMakeLists.txt
     - lib/
         - contains the header, cpp (implementation) and example files (to test individual implementation) of the library data structures and functions within respective modules
+            - page_layout_db/
+                - *namespace* encapsulating the latter defined as *dbms::page*
+                    - page_layout_db.h
+                    - page_layout_db.cpp
+                    - page_layout_example.cpp
+            
             - record_db/
                 - Implements the serialization and deserialization of fixed-length and variable-length records
                 - *namespace* encapsulating the latter defined as *dbms::record_codec*

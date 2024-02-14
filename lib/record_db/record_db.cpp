@@ -113,7 +113,7 @@ namespace dbms::record_codec {
 
     // [x] [Done]: Deserialization Function needs to be reimplemented after changes to the fixed_len_write
     void fixed_len_read(void *buf, int size, Record *record) {
-        char* byte_buffer = static_cast<char*>(buf);
+        char* byte_buffer = reinterpret_cast<char*>(buf);
         int num_attributes = size / ATTRIBUTE_FIXED_LENGTH; // Calculate the number of attributes
 
         for (int i = 0; i < num_attributes; ++i) {
