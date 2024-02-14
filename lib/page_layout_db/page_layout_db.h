@@ -53,5 +53,4 @@ namespace dbms::page {
     void read_fixed_len_page(Page *page, int slot, Record *r);
 
     
-    
 }

@@ -85,6 +85,7 @@ namespace dbms::record_codec {
             auto entry_length = std::strlen(entry);
 
             if (entry_length <= ATTRIBUTE_FIXED_LENGTH) {
+                std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0', ATTRIBUTE_FIXED_LENGTH);
                 std::memcpy(byte_buffer, entry, entry_length);
                 if (entry_length < ATTRIBUTE_FIXED_LENGTH) {
                     std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0', 
