@@ -15,6 +15,7 @@ typedef std::vector<Record*> Records;
 void read_csv(const std::string& filename, Page *page, std::vector<int> &record_id) {
     std::ifstream file(filename);
     std::string line;
+    int i = 1;
     while (std::getline(file, line)) {
         std::stringstream line_stream(line);
         std::string cell;
@@ -28,9 +29,13 @@ void read_csv(const std::string& filename, Page *page, std::vector<int> &record_
             // [x]: Fixed this was the dynamic allocation I was not deleting
             // delete[] cell_str;
         }
-
+        
+        int record_entry = add_fixed_len_page(page, &record);
+        record_id.push_back(record_entry);
+        int* slot_dir = get_slot_directory(page);
+        std::cout << "Count[" << i << "] : Record Entry[" << record_entry << "]" << ": Offset Value: " << slot_dir[record_entry] << " : ";
+        i++;
         print_record(record);
-        record_id.push_back(add_fixed_len_page(page, &record));
         cleanup_record(record);
     }
 }
@@ -52,13 +57,28 @@ int main() {
     
     std::vector<int> record_id;
     Page* page_1 = new Page;
-    init_fixed_len_page(page_1, 5402, 102);
+    init_fixed_len_page(page_1, 5500, 102);
     std::string filename = "people-100.csv";
     read_csv(filename, page_1, record_id);
+
+    Record record_1 = {"dbd12","Shelby","Terrell","Male","1945-10-26"};
+    int x = page_1->slot_size_ - 3;
+    for (auto entry_id: record_id)
+    {
+        write_fixed_len_page(page_1, x, &record_1);
+        x--;
+
+    }
+
+
+    std::cout << "\n\nPrinting Records After Retrieval: \n" << std::endl;
+    int i = 1;
 
     for (auto entry_id: record_id)
     {
         Record record_deserialized;
+        std::cout << "Count[" << i << "] : Record Entry[" << record_id[i - 1] << "]" << ":";
+        i++;
         read_fixed_len_page(page_1, entry_id, &record_deserialized);
         print_record(record_deserialized);
         cleanup_record(record_deserialized);
