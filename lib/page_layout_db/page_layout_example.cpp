@@ -1,4 +1,5 @@
 #include "page_layout_db.h"
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -29,13 +30,13 @@ void read_csv(const std::string& filename, Page *page, std::vector<int> &record_
             // [x]: Fixed this was the dynamic allocation I was not deleting
             // delete[] cell_str;
         }
-        
+        fixed_len_sizeof(&record);
         int record_entry = add_fixed_len_page(page, &record);
-        record_id.push_back(record_entry);
+        if (record_entry != -1) record_id.push_back(record_entry);
         int* slot_dir = get_slot_directory(page);
-        std::cout << "Count[" << i << "] : Record Entry[" << record_entry << "]" << ": Offset Value: " << slot_dir[record_entry] << " : ";
-        i++;
-        print_record(record);
+        // std::cout << "Count[" << i << "] : Record Entry[" << record_entry << "]" << ": Offset Value: " << slot_dir[record_entry] << " : ";
+        // i++;
+        // print_record(record);
         cleanup_record(record);
     }
 }
@@ -54,21 +55,30 @@ int main() {
     std::vector<int> record_id;
     Record record_write; */
 
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Total Number of Records: " << page_record_capacity(5000) <<
+                "\n\n\n" << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    std::cout << "Time taken: " << elapsed.count() << " milliseconds\n";
     
     std::vector<int> record_id;
     Page* page_1 = new Page;
-    init_fixed_len_page(page_1, 5500, 102);
-    std::string filename = "people-100.csv";
+    init_fixed_len_page(page_1, 5402, 52);
+    std::string filename = "people-reverse.csv";
     read_csv(filename, page_1, record_id);
 
-    Record record_1 = {"dbd12","Shelby","Terrell","Male","1945-10-26"};
-    int x = page_1->slot_size_ - 3;
-    for (auto entry_id: record_id)
-    {
-        write_fixed_len_page(page_1, x, &record_1);
-        x--;
+    // Record record_1 = {"dbd12","Shelby","Terrell","Male","1945-10-26"};
+    // int x = page_1->slot_size_ - 3;
+    // for (auto entry_id: record_id)
+    // {
+    //     write_fixed_len_page(page_1, x, &record_1);
+    //     x--;
 
-    }
+    // }
 
 
     std::cout << "\n\nPrinting Records After Retrieval: \n" << std::endl;
@@ -111,16 +121,6 @@ int main() {
 
     cleanup_record(record_1_deserialized);
     cleanup_record(record_2_deserialized);  */
-
-
-
-
-    
-
-
-    
-
-
 
 
     /* int* slot_dir = dbms::page::get_slot_directory(page_1);

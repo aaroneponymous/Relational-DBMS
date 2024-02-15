@@ -1,4 +1,5 @@
 #include "../record_db/record_db.h"
+#include <string>
 namespace dbms::page {
 
     using namespace dbms::record_codec;
@@ -51,6 +52,14 @@ namespace dbms::page {
      * Read a record from the page from a given slot.
      */
     void read_fixed_len_page(Page *page, int slot, Record *r);
+
+
+    // Experiment 3.2: Appending Pages to a Binary File
+
+    int page_record_capacity(int page_size);
+    
+    void write_fixed_len_pages(const std::string& csv_file_name, const
+                                std::string output_page_file, int page_size_);
 
     
 }
