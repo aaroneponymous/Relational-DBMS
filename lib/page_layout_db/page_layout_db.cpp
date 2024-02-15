@@ -1,6 +1,10 @@
 #include "page_layout_db.h"
 #include <cstring>
+#include <chrono>
+#include <fstream>
+#include <sstream>
 #include <iostream>
+
 
 
 namespace dbms::page {
@@ -103,7 +107,7 @@ namespace dbms::page {
                     fixed_len_write(r, reinterpret_cast<char*>(page->data_) + slot_dir[page->slot_size_ - 2]);
                     
                     /* [x]: Inserting of Records Working Perfectly
-                       [x]: Tested with deserialization right afterwards
+                    // [x]: Tested with deserialization right afterwards
                     // Print the deserialized records
                     Record record_1_deserialized;
                     fixed_len_read(page->data_, 30, &record_1_deserialized);
@@ -161,15 +165,84 @@ namespace dbms::page {
 
     }
 
-
     // Assume each slot stores an offset as an int
     int* get_slot_directory(Page* page) {
-        char* data = static_cast<char*>(page->data_);
+        // char* data = static_cast<char*>(page->data_);
         // The slot directory starts at the end of the page data minus 
         // the space needed for the slot count
         // NOTE: Make sure to reinterpret the cast of void* page->data_
-        return reinterpret_cast<int*>(data + page->page_size_ - 
-                    page->slot_size_ * sizeof(int));
+        return reinterpret_cast<int*>(reinterpret_cast<char*>(page->data_) 
+                    + page->page_size_ - page->slot_size_ * sizeof(int));
     }
+
+    // TODO: Experiment 3.2: Appending Pages to a Binary File Functions
+
+    void write_fixed_len_pages(const std::string& csv_file_name, const std::string& output_page_file, int page_size) {
+
+        std::ifstream csv_file(csv_file_name);
+        std::ofstream page_file(output_page_file, std::ios::binary | std::ios::app); // Open for appending in binary mode
+
+        if (!csv_file.is_open() || !page_file.is_open()) {
+            std::cerr << "Error opening file(s)." << std::endl;
+            return;
+        }
+
+        int page_records_cap = page_record_capacity(page_size);
+        Page* page = new Page;
+        init_fixed_len_page(page, page_size, page_records_cap + 2);
+        int* slot_dir = get_slot_directory(page);
+
+        std::string line;
+        int records_count = 0, pages_count = 0;
+
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        while (std::getline(csv_file, line)) {
+            std::stringstream line_stream(line);
+            std::string cell;
+            Record record; 
+
+            if (slot_dir[page->slot_size_ - 1] == page_records_cap)
+            {
+                char* data = static_cast<char*>(page->data_);
+                page_file.write(data, page->page_size_);
+                pages_count++;
+                std::memset(reinterpret_cast<char*>(page->data_), 0, page->page_size_);
+            }
+
+            else
+            {
+                while (std::getline(line_stream, cell, ',')) 
+                {
+                    char* cell_str = new char[cell.length() + 1];
+                    std::strcpy(cell_str, cell.c_str());
+                    record.push_back(cell_str);
+                }
+
+                add_fixed_len_page(page, &record);
+                cleanup_record(record);
+                records_count++;
+
+            }
+                            
+        }
+
+        std::memset(reinterpret_cast<char*>(page->data_), 0, page->page_size_);
+        delete[] reinterpret_cast<char*>(page->data_);
+        delete page;
+    }
+
+    int page_record_capacity(int page_size_)
+    {
+        int n = 0; // Initialize number of records
+        int record_size = ATTRIBUTE_FIXED_LENGTH * ATTRIBUTES_IN_RECORD;
+        // Iterate to find the maximum number of records that fit the page size
+        while ((n * record_size + (n + 2) * sizeof(int)) <= page_size_) {
+            n++;
+        }
+
+        return n - 1; // Adjust for the last increment that exceeds the page size
+    }
+
 
 }
