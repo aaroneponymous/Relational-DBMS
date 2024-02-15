@@ -79,13 +79,13 @@ namespace dbms::record_codec {
 
     void fixed_len_write(Record *record, void *buf) {
         // @Parameter 2: void type *buf casted to char* type
-        char* byte_buffer = static_cast<char*>(buf);
+        char* byte_buffer = reinterpret_cast<char*>(buf);
 
         for (const auto& entry: *record) {
             auto entry_length = std::strlen(entry);
 
             if (entry_length <= ATTRIBUTE_FIXED_LENGTH) {
-                std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0', ATTRIBUTE_FIXED_LENGTH);
+                std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, 0, ATTRIBUTE_FIXED_LENGTH);
                 std::memcpy(byte_buffer, entry, entry_length);
                 if (entry_length < ATTRIBUTE_FIXED_LENGTH) {
                     std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, '\0', 
