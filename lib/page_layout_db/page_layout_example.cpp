@@ -50,26 +50,37 @@ void cleanup_records(Records& records) {
 }
 
 int main() {
+
+    std::string filename = "people-100.csv";
+    std::string out_filename = "page_output";
+
+    // BUG: Undefined Behaviour at INT MAX
+    // write_fixed_len_pages(filename, out_filename, 2147483646);
+
+    write_fixed_len_pages(filename, out_filename, 999999);
+
+
+
 /*  std::string filename = "people-100.csv";
     Records records_read = read_csv(filename);
     std::vector<int> record_id;
     Record record_write; */
 
-    auto start = std::chrono::high_resolution_clock::now();
+    // auto start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Total Number of Records: " << page_record_capacity(5000) <<
-                "\n\n\n" << std::endl;
+    // std::cout << "Total Number of Records: " << page_record_capacity(5000) <<
+    //             "\n\n\n" << std::endl;
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
+    // auto end = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double, std::milli> elapsed = end - start;
 
-    std::cout << "Time taken: " << elapsed.count() << " milliseconds\n";
+    // std::cout << "Time taken: " << elapsed.count() << " milliseconds\n";
     
-    std::vector<int> record_id;
-    Page* page_1 = new Page;
-    init_fixed_len_page(page_1, 5402, 52);
-    std::string filename = "people-reverse.csv";
-    read_csv(filename, page_1, record_id);
+    // std::vector<int> record_id;
+    // Page* page_1 = new Page;
+    // init_fixed_len_page(page_1, 5402, 52);
+    // std::string filename = "people-reverse.csv";
+    // read_csv(filename, page_1, record_id);
 
     // Record record_1 = {"dbd12","Shelby","Terrell","Male","1945-10-26"};
     // int x = page_1->slot_size_ - 3;
@@ -81,18 +92,18 @@ int main() {
     // }
 
 
-    std::cout << "\n\nPrinting Records After Retrieval: \n" << std::endl;
-    int i = 1;
+    // std::cout << "\n\nPrinting Records After Retrieval: \n" << std::endl;
+    // int i = 1;
 
-    for (auto entry_id: record_id)
-    {
-        Record record_deserialized;
-        std::cout << "Count[" << i << "] : Record Entry[" << record_id[i - 1] << "]" << ":";
-        i++;
-        read_fixed_len_page(page_1, entry_id, &record_deserialized);
-        print_record(record_deserialized);
-        cleanup_record(record_deserialized);
-    }
+    // for (auto entry_id: record_id)
+    // {
+    //     Record record_deserialized;
+    //     std::cout << "Count[" << i << "] : Record Entry[" << record_id[i - 1] << "]" << ":";
+    //     i++;
+    //     read_fixed_len_page(page_1, entry_id, &record_deserialized);
+    //     print_record(record_deserialized);
+    //     cleanup_record(record_deserialized);
+    // }
 
 
     // Allocated Page* page_1
@@ -179,9 +190,9 @@ int main() {
     record_id.clear(); */
 
     
-    std::memset(reinterpret_cast<char*>(page_1->data_), 0, page_1->page_size_);
-    delete[] reinterpret_cast<char*>(page_1->data_);
-    delete page_1;
+    // std::memset(reinterpret_cast<char*>(page_1->data_), 0, page_1->page_size_);
+    // delete[] reinterpret_cast<char*>(page_1->data_);
+    // delete page_1;
 
 
 

@@ -58,8 +58,7 @@ namespace dbms::page {
 
     int page_record_capacity(int page_size);
     
-    void write_fixed_len_pages(const std::string& csv_file_name, const
-                                std::string output_page_file, int page_size_);
+    void write_fixed_len_pages(const std::string& csv_file_name, const std::string& output_page_file, int page_size_);
 
     
 }

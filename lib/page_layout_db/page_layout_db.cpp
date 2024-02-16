@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 
 
@@ -161,7 +162,8 @@ namespace dbms::page {
         int* slot_dir = get_slot_directory(page);
         // Deserialize the buffer and store in record
         // [x]: Testing set size to 5 * 10 = 50
-        fixed_len_read(reinterpret_cast<char*>(page->data_) + slot_dir[slot], 50, r);
+        int record_size = ATTRIBUTE_FIXED_LENGTH * ATTRIBUTES_IN_RECORD;
+        fixed_len_read(reinterpret_cast<char*>(page->data_) + slot_dir[slot], record_size, r);
 
     }
 
@@ -188,6 +190,7 @@ namespace dbms::page {
         }
 
         int page_records_cap = page_record_capacity(page_size);
+        std::cout << "Page Records Capacity: " << page_records_cap << "\n\n" << std::endl;
         Page* page = new Page;
         init_fixed_len_page(page, page_size, page_records_cap + 2);
         int* slot_dir = get_slot_directory(page);
@@ -207,7 +210,33 @@ namespace dbms::page {
                 char* data = static_cast<char*>(page->data_);
                 page_file.write(data, page->page_size_);
                 pages_count++;
-                std::memset(reinterpret_cast<char*>(page->data_), 0, page->page_size_);
+                // init_fixed_len_page(page, page_size, page_records_cap + 2);
+                std::memset(page->data_, 0, page->page_size_);
+                std::fill_n(slot_dir, page->slot_size_, -1);
+                slot_dir[page->slot_size_ - 1] = 0;
+                // Offset to the beginning of page (free space starts in the beginning)
+                slot_dir[page->slot_size_- 2] = 0;
+                for (int i = page->slot_size_ - 1; i >= 0; i--)
+                {
+                    std::cout << "Slot[" << i << "] : " << slot_dir[i] << std::endl;
+
+                }
+
+                
+                while (std::getline(line_stream, cell, ',')) 
+                {
+                    char* cell_str = new char[cell.length() + 1];
+                    std::strcpy(cell_str, cell.c_str());
+                    record.push_back(cell_str);
+                }
+
+                if (add_fixed_len_page(page, &record) != -1)
+                {
+                    records_count++;
+                }
+
+                cleanup_record(record);
+                
             }
 
             else
@@ -219,13 +248,22 @@ namespace dbms::page {
                     record.push_back(cell_str);
                 }
 
-                add_fixed_len_page(page, &record);
+                if (add_fixed_len_page(page, &record) != -1)
+                {
+                    records_count++;
+                }
                 cleanup_record(record);
-                records_count++;
-
             }
                             
         }
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+        // Print statistics
+        std::cout << "NUMBER OF RECORDS: " << records_count << std::endl;
+        std::cout << "NUMBER OF PAGES: " << pages_count << std::endl;
+        std::cout << "TIME: " << duration << " milliseconds" << std::endl;
 
         std::memset(reinterpret_cast<char*>(page->data_), 0, page->page_size_);
         delete[] reinterpret_cast<char*>(page->data_);
