@@ -7,14 +7,20 @@ using namespace dbms::record_codec;
 int main() {
 
     // Example records
+    Record *record_pointer = new Record;
     Record record_1 = {"mbaig2", "Marzook", "Riverview"};
     Record record_2 = {"apaul9", "Aaron", "Innovation"};
+    record_pointer = &record_1;
+
 
     std::cout << fixed_len_sizeof(&record_1) << std::endl;;
     std::cout << fixed_len_sizeof(&record_2) << std::endl;;
 
+    print_record_pointer(record_pointer);
+    // record_pointer = nullptr;
+    // delete record_pointer;
 
-    // Calculate the buffer size needed for the records
+    /* // Calculate the buffer size needed for the records
     int buffer_size = ATTRIBUTE_FIXED_LENGTH * (record_1.size() + record_2.size());
     std::cout << "Buffer Size: " << buffer_size << std::endl;
 
@@ -42,7 +48,7 @@ int main() {
     // Clean up
     delete[] buffer;
     cleanup_record(record_1_deserialized);
-    cleanup_record(record_2_deserialized);
+    cleanup_record(record_2_deserialized); */
 
     return 0;
 }

@@ -18,7 +18,7 @@ namespace dbms::page {
      * constexpr with type size_t
     */
 
-    inline constexpr std::size_t ATTRIBUTES_IN_RECORD = 100;
+    inline constexpr int ATTRIBUTES_IN_RECORD = 100;
 
     /**
      * Initializes a page using the given slot size
@@ -56,10 +56,15 @@ namespace dbms::page {
 
     // Experiment 3.2: Appending Pages to a Binary File
 
-    int page_record_capacity(int page_size);
     
-    void write_fixed_len_pages(const std::string& csv_file_name, const
-                                std::string output_page_file, int page_size_);
+    void write_fixed_len_pages(const std::string& input_csv_file, 
+                        const std::string& output_page_file, int page_size);
+
+    void read_fixed_len_pages(const std::string& output_page_file, int page_size);
+
+    int page_record_capacity(int page_size);
+
+    void read_and_print(std::ifstream& file, size_t num_bytes);
 
     
 }
