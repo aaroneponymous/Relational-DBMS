@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-
 namespace dbms::record_codec {
 
     /**
@@ -21,7 +20,7 @@ namespace dbms::record_codec {
      * constexpr with type size_t
     */
 
-    inline constexpr std::size_t ATTRIBUTE_FIXED_LENGTH = 10;
+    inline constexpr int ATTRIBUTE_FIXED_LENGTH = 10;
 
     // Fixed Length Serialization & Deserialization
 
@@ -48,8 +47,10 @@ namespace dbms::record_codec {
 
     // Utility Functions
     void print_record(const Record& record);
-
     // Function to clean up dynamically allocated Records
     void cleanup_record(Record& record);
+
+    void print_record_pointer(const Record *record);
+    void delete_record_pointer(Record *record);
 
 }

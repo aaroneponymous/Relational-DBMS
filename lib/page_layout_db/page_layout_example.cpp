@@ -51,13 +51,14 @@ void cleanup_records(Records& records) {
 
 int main() {
 
-    std::string filename = "people-100.csv";
-    std::string out_filename = "page_output";
 
     // BUG: Undefined Behaviour at INT MAX
     // write_fixed_len_pages(filename, out_filename, 2147483646);
+    std::string csv_file_name = "people-100.csv";
+    std::string output_file_name = "page_output"; 
 
-    write_fixed_len_pages(filename, out_filename, 999999);
+    write_fixed_len_pages(csv_file_name, output_file_name, 40000);
+    // read_fixed_len_pages(output_file_name, 40000);
 
 
 

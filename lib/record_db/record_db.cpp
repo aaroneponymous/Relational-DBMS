@@ -35,7 +35,7 @@ namespace dbms::record_codec {
         for (const auto& entry: *record) {
             fixed_size += sizeof(char) * strlen(entry);
         }
-        std::cout << fixed_size << std::endl;
+        // std::cout << fixed_size << std::endl;
         return fixed_size;
     }
 
@@ -79,12 +79,13 @@ namespace dbms::record_codec {
 
     void fixed_len_write(Record *record, void *buf) {
         // @Parameter 2: void type *buf casted to char* type
-        char* byte_buffer = reinterpret_cast<char*>(buf);
+        char* byte_buffer = static_cast<char*>(buf);
 
         for (const auto& entry: *record) {
             auto entry_length = std::strlen(entry);
 
             if (entry_length <= ATTRIBUTE_FIXED_LENGTH) {
+                // [x]: Initialization to 0 important otherwise points to uninitialized bytes
                 std::memset(byte_buffer + ATTRIBUTE_FIXED_LENGTH, 0, ATTRIBUTE_FIXED_LENGTH);
                 std::memcpy(byte_buffer, entry, entry_length);
                 if (entry_length < ATTRIBUTE_FIXED_LENGTH) {
@@ -98,6 +99,7 @@ namespace dbms::record_codec {
             // Option 2: Skip this attribute with or without marking its space
             // This example simply logs and skips to the next attribute space
                 std::cerr << "Attribute length exceeds fixed limit. Truncation or specific handling required.\n";
+                print_record_pointer(record);
                 std::memset(byte_buffer, '\0', ATTRIBUTE_FIXED_LENGTH); // Optionally mark the space as unused
             }
 
@@ -145,15 +147,31 @@ namespace dbms::record_codec {
         for (const auto& value : record) {
             std::cout << "\"" << value << "\" ";
         }
-        std::cout << std::endl;
+        std::cout << "\n\n" << std::endl;
     }
-
     // Function to clean up dynamically allocated Records
     void cleanup_record(Record& record) {
         for (auto& value : record) {
             delete[] value; // Free the dynamically allocated c-strings
         }
         record.clear(); // Clear the vector for good measure
+    }
+
+
+    void print_record_pointer(const Record *record)
+    {
+        for (const auto& entry: *record)
+        {
+            std::cout << entry << "; ";
+        }
+
+        std::cout << std::endl;
+    }
+
+
+    void delete_record_pointer(Record *record)
+    {
+        delete record;
     }
 
 }
