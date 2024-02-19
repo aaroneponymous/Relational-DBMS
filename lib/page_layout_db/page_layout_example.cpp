@@ -54,11 +54,11 @@ int main() {
 
     // BUG: Undefined Behaviour at INT MAX
     // write_fixed_len_pages(filename, out_filename, 2147483646);
-    std::string csv_file_name = "people-100.csv";
+    std::string csv_file_name = "people-test.csv";
     std::string output_file_name = "page_output"; 
 
-    write_fixed_len_pages(csv_file_name, output_file_name, 40000);
-    // read_fixed_len_pages(output_file_name, 40000);
+    write_fixed_len_pages(csv_file_name, output_file_name, 5000);
+    read_fixed_len_pages(output_file_name, 5000);
 
 
 
