@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I"/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db" -I"/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/record_db"
+CXX_INCLUDES = -I"/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db" -I"/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/record_db"
 
 CXX_FLAGS = -std=gnu++17
 
