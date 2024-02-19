@@ -187,11 +187,12 @@ namespace dbms::page
         }
 
         int page_records_cap = page_record_capacity(page_size);
-        Page *page = new Page;
+        // Page *page = new Page;
+        Page page;
         // page_records_cap + 2 ---> Need two more slots for free offset 
         // pointer and number of records
-        init_fixed_len_page(page, page_size, page_records_cap + 2);
-        int *slot_dir = get_slot_directory(page);
+        init_fixed_len_page(&page, page_size, page_records_cap + 2);
+        int *slot_dir = get_slot_directory(&page);
 
         std::string line;
         int records_count = 0, pages_count = 0;
@@ -210,23 +211,23 @@ namespace dbms::page
                 record.push_back(cell_str);
             }
 
-            if (add_fixed_len_page(page, &record) != -1)
+            if (add_fixed_len_page(&page, &record) != -1)
             {
                 records_count++;
             }
             else
             {
                 // Page is full, write it out and reset for next page
-                char *data = static_cast<char *>(page->data_);
-                page_file.write(data, page->page_size_);
+                char *data = static_cast<char *>(page.data_);
+                page_file.write(data, page.page_size_);
                 pages_count++;
                 // FIXME: Making a Change Here
-                std::memset(page->data_, 0, page->page_size_ - (page->slot_size_ * 4));
-                std::fill_n(slot_dir, page->slot_size_, -1);
-                slot_dir[page->slot_size_ - 1] = 0;
-                slot_dir[page->slot_size_ - 2] = 0;
+                std::memset(page.data_, 0, page.page_size_ - (page.slot_size_ * 4));
+                std::fill_n(slot_dir, page.slot_size_, -1);
+                slot_dir[page.slot_size_ - 1] = 0;
+                slot_dir[page.slot_size_ - 2] = 0;
                 // Add record to the new page
-                add_fixed_len_page(page, &record);
+                add_fixed_len_page(&page, &record);
                 records_count++;
             }
 
@@ -234,11 +235,13 @@ namespace dbms::page
         }
 
         // After finishing the loop, check if there are any unsaved records in the current page buffer
-        if (slot_dir[page->slot_size_ - 1] > 0 && slot_dir[page->slot_size_ - 1] != page_records_cap)
+        if (slot_dir[page.slot_size_ - 1] > 0 && slot_dir[page.slot_size_ - 1] != page_records_cap)
         {
             // Write the final page to the file
-            char *data = static_cast<char *>(page->data_);
-            page_file.write(data, page->page_size_);
+            // [x]: Introducing a Hack Here
+            // slot_dir[page.slot_size_ - 2] = -1;
+            char *data = static_cast<char *>(page.data_);
+            page_file.write(data, page.page_size_);
             pages_count++;
         }
 
@@ -249,8 +252,8 @@ namespace dbms::page
         std::cout << "NUMBER OF PAGES: " << pages_count << std::endl;
         std::cout << "TIME: " << duration << " milliseconds" << std::endl;
 
-        delete[] static_cast<char *>(page->data_);
-        delete page;
+        delete[] static_cast<char *>(page.data_);
+        // delete page;
     }
 
    
@@ -266,10 +269,11 @@ namespace dbms::page
         {
             Record record;
             int record_no = 1;
+            int no_page = 1;
             int page_records_capacity = page_record_capacity(page_size);
-            Page *page = new Page;
-            init_fixed_len_page(page, page_size, page_records_capacity + 2);
-            int *slot_dir = get_slot_directory(page);
+            Page page;
+            init_fixed_len_page(&page, page_size, page_records_capacity + 2);
+            int *slot_dir = get_slot_directory(&page);
             char buffer[page_size];
 
             // NOTE: Bytes reading Test
@@ -278,28 +282,30 @@ namespace dbms::page
             // While not End of File
             while (input_file.read(buffer, page_size))
             {
-                std::memcpy(static_cast<char *>(page->data_), buffer,
+                std::memcpy(static_cast<char *>(page.data_), buffer,
                             page_size);
 
-                for (int i = page->slot_size_ - 2; i >= 0; i--)
+                std::cout << "Page No: " << no_page << std::endl;
+                for (int i = page.slot_size_ - 3; i >= 0; i--)
                 {
                     if (slot_dir[i] != -1)
                     {
                         std::cout << "Record [" << record_no << "] :" << std::endl;
                         record_no++;
-                        read_fixed_len_page(page, i, &record);
+                        read_fixed_len_page(&page, i, &record);
                         print_record(record);
                         cleanup_record(record);
                     }
                 }
 
-                std::memset(page->data_, 0, page_size);
+                std::memset(page.data_, 0, page_size);
                 std::memset(buffer, 0, page_size);
+                no_page++;
             }
 
-            std::memset(reinterpret_cast<char *>(page->data_), 0, page->page_size_);
-            delete[] reinterpret_cast<char *>(page->data_);
-            delete page;
+            std::memset(reinterpret_cast<char *>(page.data_), 0, page.page_size_);
+            delete[] reinterpret_cast<char *>(page.data_);
+            // delete page;
         }
     }
 
