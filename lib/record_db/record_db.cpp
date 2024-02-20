@@ -20,13 +20,6 @@ namespace dbms::record_codec {
      *  Compute the number of bytes required to serialize record
     */
 
-    /* // Lambda Expression Implementation to be used if local heavy usage
-    // None?
-    auto fixed_len_sizeof_lambda = [] (Record *record) {
-        // sizeof(char); record->size(); ATTRIBUTE_FIXED_LENGTH;
-        return sizeof(char) * record->size() * ATTRIBUTE_FIXED_LENGTH;
-    }; */
-
     // [x] The attribute length is fixed but entries can be shorter than the max length
     // [x] Calculate the length of each entry iteratively
 
@@ -75,8 +68,6 @@ namespace dbms::record_codec {
     * After each iteration of the entry V in vector<V> Record, increment the byte_buffer by the ATTRIBUTE_FIXED_LENGTH
    */
 
-    // [x]: Previous Note to fix was not right: This implementation works
-
     void fixed_len_write(Record *record, void *buf) {
         // @Parameter 2: void type *buf casted to char* type
         char* byte_buffer = static_cast<char*>(buf);
@@ -114,7 +105,6 @@ namespace dbms::record_codec {
     * stores the record in `record`.
     */
 
-    // [x] [Done]: Deserialization Function needs to be reimplemented after changes to the fixed_len_write
     void fixed_len_read(void *buf, int size, Record *record) {
         char* byte_buffer = reinterpret_cast<char*>(buf);
         int num_attributes = size / ATTRIBUTE_FIXED_LENGTH; // Calculate the number of attributes
@@ -135,12 +125,6 @@ namespace dbms::record_codec {
     }
    
     // Variable Length Serialization & Deserialization
-
-// NOTE: Variable Length Serialization: Create a Meta Header based on the entries in the record : strlen(entries) int
-// NOTE: Add Offsets, You don't need to know the schema to create offsets
-// NOTE: But how would you differentiate records that are Variable or Fixed when Insertion
-// NOTE: Depends on the relation when inserting records, you choose the specific function 
-
 
     // Utility Functions
     void print_record(const Record& record) {
@@ -164,7 +148,6 @@ namespace dbms::record_codec {
         {
             std::cout << entry << "; ";
         }
-
         std::cout << std::endl;
     }
 

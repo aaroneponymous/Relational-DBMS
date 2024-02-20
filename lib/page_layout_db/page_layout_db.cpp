@@ -19,7 +19,6 @@ namespace dbms::page
 
     void init_fixed_len_page(Page *page, int page_size, int slot_size)
     {
-
         if (!page)
         {
             std::cerr << "Page *page pointer NULL" << std::endl;
@@ -29,8 +28,6 @@ namespace dbms::page
             // Handle error or allocate memory for page
             // Allocate memory for the Page *page
             // Initialize: Otherwise points to unitialised bytes
-            // FIXME - Initialize to int 0, not '\0' gives error
-            // BUG - Conditional jump or move depends on uninitialised values
             page->data_ = new char[page_size];
             page->page_size_ = page_size;
             page->slot_size_ = slot_size;
@@ -80,7 +77,6 @@ namespace dbms::page
                 free_slots++;
             }
         }
-
         return free_slots;
     }
 
@@ -92,10 +88,8 @@ namespace dbms::page
      */
     int add_fixed_len_page(Page *page, Record *r)
     {
-
         // Get Page's Slot Directory
         int *slot_dir = get_slot_directory(page);
-
         // Space for the new record
         int required_space = ATTRIBUTE_FIXED_LENGTH * r->size();
 
@@ -106,16 +100,6 @@ namespace dbms::page
                 if (slot_dir[i] == -1)
                 {
                     fixed_len_write(r, reinterpret_cast<char *>(page->data_) + slot_dir[page->slot_size_ - 2]);
-
-                    /* [x]: Inserting of Records Working Perfectly
-                    // [x]: Tested with deserialization right afterwards
-                    // Print the deserialized records
-                    Record record_1_deserialized;
-                    fixed_len_read(page->data_, 30, &record_1_deserialized);
-                    std::cout << "Deserialized Record 1: ";
-                    print_record(record_1_deserialized);
-                    cleanup_record(record_1_deserialized); */
-
                     slot_dir[i] = slot_dir[page->slot_size_ - 2];
                     slot_dir[page->slot_size_ - 1]++;
                     slot_dir[page->slot_size_ - 2] += required_space;
@@ -157,8 +141,7 @@ namespace dbms::page
     void read_fixed_len_page(Page *page, int slot, Record *r)
     {
         int *slot_dir = get_slot_directory(page);
-        // Deserialize the buffer and store in record
-        // [x]: Testing set size to 5 * 10 = 50
+        // Deserialize the buffer and store in rec
         int record_size = ATTRIBUTE_FIXED_LENGTH * ATTRIBUTES_IN_RECORD;
         fixed_len_read(reinterpret_cast<char *>(page->data_) + slot_dir[slot], record_size, r);
     }
@@ -166,10 +149,6 @@ namespace dbms::page
     // Assume each slot stores an offset as an int
     int *get_slot_directory(Page *page)
     {
-        // char* data = static_cast<char*>(page->data_);
-        // The slot directory starts at the end of the page data minus
-        // the space needed for the slot count
-        // NOTE: Make sure to reinterpret the cast of void* page->data_
         return reinterpret_cast<int *>(reinterpret_cast<char *>(page->data_) + page->page_size_ - page->slot_size_ * sizeof(int));
     }
 
@@ -187,10 +166,7 @@ namespace dbms::page
         }
 
         int page_records_cap = page_record_capacity(page_size);
-        // Page *page = new Page;
         Page page;
-        // page_records_cap + 2 ---> Need two more slots for free offset 
-        // pointer and number of records
         init_fixed_len_page(&page, page_size, page_records_cap + 2);
         int *slot_dir = get_slot_directory(&page);
 
@@ -221,7 +197,6 @@ namespace dbms::page
                 char *data = static_cast<char *>(page.data_);
                 page_file.write(data, page.page_size_);
                 pages_count++;
-                // FIXME: Making a Change Here
                 std::memset(page.data_, 0, page.page_size_ - (page.slot_size_ * 4));
                 std::fill_n(slot_dir, page.slot_size_, -1);
                 slot_dir[page.slot_size_ - 1] = 0;
@@ -238,8 +213,6 @@ namespace dbms::page
         if (slot_dir[page.slot_size_ - 1] > 0 && slot_dir[page.slot_size_ - 1] != page_records_cap)
         {
             // Write the final page to the file
-            // [x]: Introducing a Hack Here
-            // slot_dir[page.slot_size_ - 2] = -1;
             char *data = static_cast<char *>(page.data_);
             page_file.write(data, page.page_size_);
             pages_count++;
@@ -253,7 +226,6 @@ namespace dbms::page
         std::cout << "TIME: " << duration << " milliseconds" << std::endl;
 
         delete[] static_cast<char *>(page.data_);
-        // delete page;
     }
 
    
@@ -276,10 +248,6 @@ namespace dbms::page
             int *slot_dir = get_slot_directory(&page);
             char buffer[page_size];
 
-            // NOTE: Bytes reading Test
-            // std::cout << "First " << page_size << " Bytes:" << std::endl;
-            // read_and_print(input_file, page_size);
-            // While not End of File
             while (input_file.read(buffer, page_size))
             {
                 std::memcpy(static_cast<char *>(page.data_), buffer,
@@ -305,7 +273,6 @@ namespace dbms::page
 
             std::memset(reinterpret_cast<char *>(page.data_), 0, page.page_size_);
             delete[] reinterpret_cast<char *>(page.data_);
-            // delete page;
         }
     }
 
