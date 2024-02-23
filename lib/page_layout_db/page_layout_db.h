@@ -1,6 +1,7 @@
 #include "../record_db/record_db.h"
 #include <string>
-namespace dbms::page {
+namespace dbms::page 
+{
 
     using namespace dbms::record_codec;
     

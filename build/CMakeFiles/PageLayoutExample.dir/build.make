@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1"
+CMAKE_SOURCE_DIR = "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build"
+CMAKE_BINARY_DIR = "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/PageLayoutExample.dir/depend.make
@@ -72,44 +72,44 @@ include CMakeFiles/PageLayoutExample.dir/flags.make
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o: CMakeFiles/PageLayoutExample.dir/flags.make
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o: ../lib/page_layout_db/page_layout_example.cpp
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o: CMakeFiles/PageLayoutExample.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_example.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_example.cpp"
 
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_example.cpp" > CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_example.cpp" > CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.i
 
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_example.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_example.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_example.cpp.s
 
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o: CMakeFiles/PageLayoutExample.dir/flags.make
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o: ../lib/page_layout_db/page_layout_db.cpp
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o: CMakeFiles/PageLayoutExample.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_db.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_db.cpp"
 
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_db.cpp" > CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_db.cpp" > CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.i
 
 CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/page_layout_db/page_layout_db.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/page_layout_db/page_layout_db.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layout_db.cpp.s
 
 CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o: CMakeFiles/PageLayoutExample.dir/flags.make
 CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o: ../lib/record_db/record_db.cpp
 CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o: CMakeFiles/PageLayoutExample.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/record_db/record_db.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o -MF CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o.d -o CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o -c "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/record_db/record_db.cpp"
 
 CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/record_db/record_db.cpp" > CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/record_db/record_db.cpp" > CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.i
 
 CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/lib/record_db/record_db.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/lib/record_db/record_db.cpp" -o CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.s
 
 # Object files for target PageLayoutExample
 PageLayoutExample_OBJECTS = \
@@ -125,7 +125,7 @@ PageLayoutExample: CMakeFiles/PageLayoutExample.dir/lib/page_layout_db/page_layo
 PageLayoutExample: CMakeFiles/PageLayoutExample.dir/lib/record_db/record_db.cpp.o
 PageLayoutExample: CMakeFiles/PageLayoutExample.dir/build.make
 PageLayoutExample: CMakeFiles/PageLayoutExample.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable PageLayoutExample"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable PageLayoutExample"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/PageLayoutExample.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -137,6 +137,6 @@ CMakeFiles/PageLayoutExample.dir/clean:
 .PHONY : CMakeFiles/PageLayoutExample.dir/clean
 
 CMakeFiles/PageLayoutExample.dir/depend:
-	cd "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/project_1/build/CMakeFiles/PageLayoutExample.dir/DependInfo.cmake" --color=$(COLOR)
+	cd "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build" "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles/PageLayoutExample.dir/DependInfo.cmake" --color=$(COLOR)
 .PHONY : CMakeFiles/PageLayoutExample.dir/depend
 
