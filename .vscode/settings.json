@@ -92,8 +92,8 @@
         },
         "[ ]": {
             "icon": "check",
-            "foreground": "black",
-            "background": "white",
+            "foreground": "white",
+            "background": "blue",
             "iconColour": "yellow",
         },
         "[x]": {
