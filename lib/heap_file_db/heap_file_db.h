@@ -1,5 +1,6 @@
 #include "../record_db/record_db.h"
 #include "../page_layout_db/page_layout_db.h"
+#include <cmath>
 
 namespace dbms::heap_file
 {
@@ -21,6 +22,7 @@ namespace dbms::heap_file
     {
         FILE *file_ptr_;
         int meta_data_size_;
+        int page_size_;
     };
 
     // Abstraction of page ID and record ID
@@ -59,6 +61,16 @@ namespace dbms::heap_file
      */
     void write_page(Page *page, Heapfile *heapfile, PageID pid);
 
+    void get_heapfile_directory(Heapfile *heapfile);
+
+        /**
+     * Lambda Expression for Calculating the Heap File Page Capacity
+    */
+
+    int heapfile_capacity(int page_size, int address_size);
+    
+    int heapfile_metadata_size(int heapfile_page_cap);
+
     // The central functionality of a heap file is enumeration of records
     // [ ]: Implement the record iterator class
 
@@ -71,7 +83,7 @@ namespace dbms::heap_file
         RecordIterator(Heapfile *heapfile);
         Record next();
         bool hasNext();
-    }
+    };
 
     
     

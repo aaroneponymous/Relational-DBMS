@@ -63,7 +63,7 @@ CMAKE_BINARY_DIR = "/home/aaroneponymous/Aaron's Folder/University/Semesters/spr
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/PageLayoutExample.dir/all
+all: CMakeFiles/HeapFileExample.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/PageLayoutExample.dir/clean
+clean: CMakeFiles/HeapFileExample.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/PageLayoutExample.dir
+# Target rules for target CMakeFiles/HeapFileExample.dir
 
 # All Build rule for target.
-CMakeFiles/PageLayoutExample.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/PageLayoutExample.dir/build.make CMakeFiles/PageLayoutExample.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/PageLayoutExample.dir/build.make CMakeFiles/PageLayoutExample.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=1,2,3,4 "Built target PageLayoutExample"
-.PHONY : CMakeFiles/PageLayoutExample.dir/all
+CMakeFiles/HeapFileExample.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HeapFileExample.dir/build.make CMakeFiles/HeapFileExample.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HeapFileExample.dir/build.make CMakeFiles/HeapFileExample.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" --progress-num=1,2,3,4,5 "Built target HeapFileExample"
+.PHONY : CMakeFiles/HeapFileExample.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/PageLayoutExample.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" 4
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/PageLayoutExample.dir/all
+CMakeFiles/HeapFileExample.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" 5
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/HeapFileExample.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/aaroneponymous/Aaron's Folder/University/Semesters/spring_2024/csc_263/project_1/build/CMakeFiles" 0
-.PHONY : CMakeFiles/PageLayoutExample.dir/rule
+.PHONY : CMakeFiles/HeapFileExample.dir/rule
 
 # Convenience name for target.
-PageLayoutExample: CMakeFiles/PageLayoutExample.dir/rule
-.PHONY : PageLayoutExample
+HeapFileExample: CMakeFiles/HeapFileExample.dir/rule
+.PHONY : HeapFileExample
 
 # clean rule for target.
-CMakeFiles/PageLayoutExample.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/PageLayoutExample.dir/build.make CMakeFiles/PageLayoutExample.dir/clean
-.PHONY : CMakeFiles/PageLayoutExample.dir/clean
+CMakeFiles/HeapFileExample.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HeapFileExample.dir/build.make CMakeFiles/HeapFileExample.dir/clean
+.PHONY : CMakeFiles/HeapFileExample.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
