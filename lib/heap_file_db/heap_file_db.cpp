@@ -10,32 +10,41 @@ namespace dbms::heap_file
 
     void init_heapfile(Heapfile *heapfile, int page_size, FILE *file)
     {
+        // FIXME: Think about an implementation where you're initializing
+        // FIXME: a new heapfile in a file which already has data too
+        // FIXME: Implement that after you're done testing this
+
         if (file == nullptr)
         {
             std::cerr << "File pointer is null" << std::endl;
             return;
         }
 
-        int heapfile_page_cap = heapfile_capacity(page_size, 32);
-        int heapfile_meta_size = heapfile_metadata_size(heapfile_page_cap);
+        int hf_page_cap = heapfile_capacity(page_size, 32);
+        int hf_meta_size = heapfile_metadata_size(hf_page_cap);
+        int meta_effective_size = hf_meta_size * sizeof(int);
+        std::cout << "Heapfile Page Capacity: " << hf_page_cap << std::endl;
+        std::cout << "Heapfile Meta Slots: " << hf_meta_size << std::endl;
 
-
-        // Pages a Directory can Index & Heapfile Directory Header
         heapfile->file_ptr_ = file;
-        heapfile->meta_data_size_= heapfile_meta_size;
+        heapfile->meta_data_size_ = hf_meta_size;
         heapfile->page_size_ = page_size;
-        
-        char* heapfile_initial = new char[heapfile_page_cap + heapfile_meta_size + page_size];
-        std::memset(heapfile_initial, 0, heapfile->meta_data_size_ + heapfile->page_size_);
-        // [x] Redundant to do the following:
-        /* int* metadata_dir = reinterpret_cast<int*>(heapfile_initial + heapfile->meta_data_size_);
-        std::fill_n(metadata_dir, heapfile->meta_data_size_, 0); */
-        
-        // Write to File *file
-        fwrite(heapfile_initial, sizeof(char), heapfile_page_cap + heapfile_meta_size, file);
-        delete[] heapfile_initial;  
+
+        // Allocation of char* buffer
+        char* initial_buffer = new char[meta_effective_size + page_size];
+        std::memset(initial_buffer, 0, meta_effective_size + page_size);
+        int* meta_dir = reinterpret_cast<int*>(initial_buffer);
+        std::fill_n(meta_dir, hf_meta_size, 0);
+        meta_dir[1]++;
+        meta_dir[2] = meta_effective_size;
+        meta_dir[3] = page_size;
+
+        // Write only metadata to the file
+        fwrite(initial_buffer, sizeof(char), meta_effective_size, file);
+        delete[] initial_buffer;
         // FIXME: MAKE SURE YOU CLOSE THE FILE - OTHERWISE MEMORY LEAK FROM THE POINTER      
     }
+
 
     int heapfile_capacity(int page_size, int address_size)
     {
@@ -44,24 +53,27 @@ namespace dbms::heap_file
     
     int heapfile_metadata_size(int heapfile_page_cap)
     {
-        return (1 + 1 + (2 * heapfile_page_cap)) * static_cast<int>(sizeof(int));
+        return (1 + 1 + (2 * heapfile_page_cap));
     }
 
 
 
-    // Assume each slot stores an offset as an int
-    // FIXME: Change the implementation when you get here
     void get_heapfile_directory(Heapfile *heapfile)
     {
+
         int metasize = heapfile->meta_data_size_;
         int pagesize = heapfile->page_size_;
-        char metadata[metasize];
-        fread(metadata, sizeof(char), sizeof(metadata), heapfile->file_ptr_);
+
+        char* metadata = new char[metasize * sizeof(int)];
+        // Use memcpy
+        // std::memcpy(metadata, heapfile->file_ptr_, metasize * sizeof(int));
+        fread(metadata, sizeof(char), metasize * sizeof(int), heapfile->file_ptr_);
         int* meta_dir = reinterpret_cast<int*>(metadata);
         for (int i = 0; i < heapfile->meta_data_size_; i++)
         {
-            std::cout << "Slot [" << i << "]: " << meta_dir[i] << std::endl;  
+            std::cout << "Slot [" << i + 1 << "]: " << meta_dir[i] << std::endl;  
         }
+        delete[] metadata;
     }
 
 }
