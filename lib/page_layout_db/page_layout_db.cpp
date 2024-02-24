@@ -9,10 +9,6 @@
 namespace dbms::page
 {
 
-    // FIXME: Passing page_size: Does it have to be interpreted as size_t
-    // [x]: I am dumb: sizeof(page_size) would just give 4 bytes lmao
-    // FIXME: Or char[int characters (page_size)]
-
     /**
      * Initializes a page using the given slot size
      */
@@ -151,8 +147,6 @@ namespace dbms::page
     {
         return reinterpret_cast<int *>(reinterpret_cast<char *>(page->data_) + page->page_size_ - page->slot_size_ * sizeof(int));
     }
-
-    // TODO Experiment 3.2: Appending Pages to a Binary File Functions
 
     void write_fixed_len_pages(const std::string &csv_input_file, const std::string &output_page_file, int page_size)
     {

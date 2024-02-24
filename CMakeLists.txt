@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/lib/page_layout_db)
 include_directories(${PROJECT_SOURCE_DIR}/lib/record_db)
+include_directories(${PROJECT_SOURCE_DIR}/lib/heap_file_db)
 
 # Add executable
-add_executable(PageLayoutExample lib/page_layout_db/page_layout_example.cpp lib/page_layout_db/page_layout_db.cpp lib/record_db/record_db.cpp)
+add_executable(HeapFileExample lib/heap_file_db/heap_file_example.cpp lib/heap_file_db/heap_file_db.cpp lib/page_layout_db/page_layout_db.cpp lib/record_db/record_db.cpp)
 

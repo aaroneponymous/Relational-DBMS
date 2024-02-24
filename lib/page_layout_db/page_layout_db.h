@@ -1,6 +1,7 @@
 #include "../record_db/record_db.h"
 #include <string>
-namespace dbms::page {
+namespace dbms::page 
+{
 
     using namespace dbms::record_codec;
     
@@ -85,6 +86,7 @@ namespace dbms::page {
     int page_record_capacity(int page_size);
 
     void read_and_print(std::ifstream& file, size_t num_bytes);
+
 
     
 }
