@@ -35,12 +35,7 @@ namespace dbms::page
      * Calculate the free space (number of free slots) in the page
      */
     int fixed_len_page_freeslots(Page *page);
-    
-    /**
-     * Returns an int* to the beginning of the slot directory
-     * NOTE: When traversing do in reverse: slot_dir[page->size - 1]
-    */
-    int* get_slot_directory(Page* page);
+
     
     /**
      * Add a record to the page
@@ -60,19 +55,7 @@ namespace dbms::page
      */
     void read_fixed_len_page(Page *page, int slot, Record *r);
 
-
-    // Experiment 3.2: Appending Pages to a Binary File and Reading from a Binary File
-
-    /**
-     * Write the fixed length pages to a binary output file from csv file as an input
-    */
-    void write_fixed_len_pages(const std::string& input_csv_file, 
-                        const std::string& output_page_file, int page_size);
-
-    /**
-     * Read the fixed length pages that are in binary format in-memory (output file)
-    */
-    void read_fixed_len_pages(const std::string& output_page_file, int page_size);
+    // [x]: Helper Functions
 
     /**
      * Calculates the maximum capacity of records that can be stored in the page
@@ -85,8 +68,32 @@ namespace dbms::page
     */
     int page_record_capacity(int page_size);
 
+    /**
+     * Returns an int* to the beginning of the slot directory
+     * NOTE: When traversing do in reverse: slot_dir[page->size - 1]
+    */
+    int* get_slot_directory(Page* page);
+
     void read_and_print(std::ifstream& file, size_t num_bytes);
 
+    void add_records_to_page(Page *page, const std::string &csv_input_file);
 
+    void print_page_records(Page *page);
+
+
+
+    // Experiment 3.2: Appending Pages to a Binary File and Reading from a Binary File
+    // [x]: Functions for the executables
+
+    /**
+     * Write the fixed length pages to a binary output file from csv file as an input
+    */
+    void write_fixed_len_pages(const std::string& input_csv_file, 
+                        const std::string& output_page_file, int page_size);
+
+    /**
+     * Read the fixed length pages that are in binary format in-memory (output file)
+    */
+    void read_fixed_len_pages(const std::string& output_page_file, int page_size);
     
 }

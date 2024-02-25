@@ -131,6 +131,7 @@ namespace dbms::page
         fixed_len_write(r, reinterpret_cast<char *>(page->data_) + slot_dir[slot]);
     }
 
+
     /**
      * Read a record from the page from a given slot.
      */
@@ -142,12 +143,106 @@ namespace dbms::page
         fixed_len_read(reinterpret_cast<char *>(page->data_) + slot_dir[slot], record_size, r);
     }
 
+
+    // [x]: Helper Functions
+
+
+    int page_record_capacity(int page_size_)
+    {
+        int n = 0; // Initialize number of records
+        int record_size = ATTRIBUTE_FIXED_LENGTH * ATTRIBUTES_IN_RECORD;
+        // Iterate to find the maximum number of records that fit the page size
+        while ((n * record_size + (n + 2) * sizeof(int)) <= page_size_)
+        {
+            n++;
+        }
+
+        return n - 1; // Adjust for the last increment that exceeds the page size
+    }
+
     // Assume each slot stores an offset as an int
     int *get_slot_directory(Page *page)
     {
         return reinterpret_cast<int *>(reinterpret_cast<char *>(page->data_) + page->page_size_ - page->slot_size_ * sizeof(int));
     }
+    
+    void add_records_to_page(Page *page, const std::string &csv_input_file)
+    {
+        std::ifstream csv_file(csv_input_file);
 
+        int *slot_dir = get_slot_directory(page);
+
+        std::string line;
+
+        while (std::getline(csv_file, line))
+        {
+            std::stringstream line_stream(line);
+            std::string cell;
+            Record record;
+
+            while (std::getline(line_stream, cell, ','))
+            {
+                char *cell_str = new char[cell.length() + 1];
+                std::strcpy(cell_str, cell.c_str());
+                record.push_back(cell_str);
+            }
+
+            // print_record(record);
+
+            if (add_fixed_len_page(page, &record) == -1)
+            {
+                cleanup_record(record);
+                return;
+            }
+           
+            cleanup_record(record);
+        }
+    }
+
+    void print_page_records(Page *page)
+    {
+        if (!page)
+        {
+            std::cerr << "Error: Invalid page pointer" << std::endl;
+            return;
+        }
+
+        int *slot_dir = get_slot_directory(page);
+
+        std::cout << "Printing records in the page:" << std::endl;
+
+        // Iterate over slots in reverse order to print records
+        for (int i = page->slot_size_ - 3; i >= 0; i--)
+        {
+            if (slot_dir[i] != -1)
+            {
+                Record record;
+                read_fixed_len_page(page, i, &record);
+                print_record(record);
+                cleanup_record(record);
+            }
+        }
+    }
+
+
+    void read_and_print(std::ifstream &file, size_t num_bytes)
+    {
+        std::vector<char> buffer(num_bytes);
+        file.read(buffer.data(), num_bytes);
+
+        // Check how many bytes were successfully read
+        std::streamsize bytes_read = file.gcount();
+        std::cout << "Bytes read: " << bytes_read << std::endl;
+
+        // Print the buffer content in hexadecimal
+        for (size_t i = 0; i < static_cast<size_t>(bytes_read); ++i)
+        {
+            std::cout << std::hex << (buffer[i] & 0xff) << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // FIXME: Added page_test parameter for testing
     void write_fixed_len_pages(const std::string &csv_input_file, const std::string &output_page_file, int page_size)
     {
         std::ifstream csv_file(csv_input_file);
@@ -159,7 +254,7 @@ namespace dbms::page
             return;
         }
 
-        int page_records_cap = page_record_capacity(page_size);
+        int page_records_cap = page_record_capacity(page_size); 
         Page page;
         init_fixed_len_page(&page, page_size, page_records_cap + 2);
         int *slot_dir = get_slot_directory(&page);
@@ -268,36 +363,6 @@ namespace dbms::page
             std::memset(reinterpret_cast<char *>(page.data_), 0, page.page_size_);
             delete[] reinterpret_cast<char *>(page.data_);
         }
-    }
-
-    int page_record_capacity(int page_size_)
-    {
-        int n = 0; // Initialize number of records
-        int record_size = ATTRIBUTE_FIXED_LENGTH * ATTRIBUTES_IN_RECORD;
-        // Iterate to find the maximum number of records that fit the page size
-        while ((n * record_size + (n + 2) * sizeof(int)) <= page_size_)
-        {
-            n++;
-        }
-
-        return n - 1; // Adjust for the last increment that exceeds the page size
-    }
-
-    void read_and_print(std::ifstream &file, size_t num_bytes)
-    {
-        std::vector<char> buffer(num_bytes);
-        file.read(buffer.data(), num_bytes);
-
-        // Check how many bytes were successfully read
-        std::streamsize bytes_read = file.gcount();
-        std::cout << "Bytes read: " << bytes_read << std::endl;
-
-        // Print the buffer content in hexadecimal
-        for (size_t i = 0; i < static_cast<size_t>(bytes_read); ++i)
-        {
-            std::cout << std::hex << (buffer[i] & 0xff) << " ";
-        }
-        std::cout << std::endl;
     }
 
 }

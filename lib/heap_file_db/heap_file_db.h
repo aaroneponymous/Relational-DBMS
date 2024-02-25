@@ -27,7 +27,7 @@ namespace dbms::heap_file
 
     // Abstraction of page ID and record ID
     typedef int PageID;
-    struct RecordIDbits_free_space
+    struct RecordID
     {
         PageID page_id_;
         int slot_;
@@ -61,11 +61,11 @@ namespace dbms::heap_file
      */
     void write_page(Page *page, Heapfile *heapfile, PageID pid);
 
-    void get_heapfile_directory(Heapfile *heapfile);
+    
 
-        /**
-     * Lambda Expression for Calculating the Heap File Page Capacity
-    */
+    // [x]: Helper Functions
+
+    void get_heapfile_directory(Heapfile *heapfile);
 
     int heapfile_capacity(int page_size, int address_size);
     
