@@ -28,6 +28,7 @@ namespace dbms::record_codec {
         for (const auto& entry: *record) {
             fixed_size += sizeof(char) * strlen(entry);
         }
+        
         // std::cout << fixed_size << std::endl;
         return fixed_size;
     }
@@ -104,15 +105,19 @@ namespace dbms::record_codec {
     * Deserializes `size` bytes from the buffer, `buf`, and
     * stores the record in `record`.
     */
-
+   
+   // FIXME: Memory Deallocation
+   // BUG: Memory Deallocation
     void fixed_len_read(void *buf, int size, Record *record) {
         char* byte_buffer = reinterpret_cast<char*>(buf);
         int num_attributes = size / ATTRIBUTE_FIXED_LENGTH; // Calculate the number of attributes
+        // Allocate space for a new attribute, +1 for null-terminator
+        
 
         for (int i = 0; i < num_attributes; ++i) {
-            // Allocate space for a new attribute, +1 for null-terminator
-            char* attribute = new char[ATTRIBUTE_FIXED_LENGTH + 1];
 
+            char* attribute = new char[ATTRIBUTE_FIXED_LENGTH + 1];
+           
             // Copy ATTRIBUTE_FIXED_LENGTH bytes from the buffer into attribute
             std::strncpy(attribute, byte_buffer + (i * ATTRIBUTE_FIXED_LENGTH), ATTRIBUTE_FIXED_LENGTH);
 
@@ -121,7 +126,11 @@ namespace dbms::record_codec {
 
             // Add the attribute to the record
             record->push_back(attribute);
+
         }
+
+        // delete[] attribute;
+        
     }
    
     // Variable Length Serialization & Deserialization
@@ -133,6 +142,7 @@ namespace dbms::record_codec {
         }
         std::cout << "\n\n" << std::endl;
     }
+    
     // Function to clean up dynamically allocated Records
     void cleanup_record(Record& record) {
         for (auto& value : record) {
@@ -150,7 +160,6 @@ namespace dbms::record_codec {
         }
         std::cout << std::endl;
     }
-
 
     void delete_record_pointer(Record *record)
     {

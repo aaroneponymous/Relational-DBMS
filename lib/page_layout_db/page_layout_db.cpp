@@ -24,6 +24,7 @@ namespace dbms::page
             // Handle error or allocate memory for page
             // Allocate memory for the Page *page
             // Initialize: Otherwise points to unitialised bytes
+            // FIXME: MAYBE THIS IS CAUSING MEMORY LEAK IN HEAPFILE
             page->data_ = new char[page_size];
             page->page_size_ = page_size;
             page->slot_size_ = slot_size;
@@ -38,12 +39,7 @@ namespace dbms::page
             // Number of Records Present Slot: Initially Empty Slots (NULL)
 
             int *slot_directory = get_slot_directory(page);
-
-            for (int i = 0; i < slot_size; i++)
-            {
-                slot_directory[i] = -1;
-            }
-
+            std::fill_n(slot_directory, slot_size, -1);
             slot_directory[slot_size - 1] = 0;
             // Offset to the beginning of page (free space starts in the beginning)
             slot_directory[slot_size - 2] = 0;
@@ -160,6 +156,12 @@ namespace dbms::page
         return n - 1; // Adjust for the last increment that exceeds the page size
     }
 
+    int get_record_count(Page *page)
+    {
+        int* page_dir = get_slot_directory(page);
+        return page_dir[page->slot_size_ - 1];
+    }
+
     // Assume each slot stores an offset as an int
     int *get_slot_directory(Page *page)
     {
@@ -224,7 +226,6 @@ namespace dbms::page
         }
     }
 
-
     void read_and_print(std::ifstream &file, size_t num_bytes)
     {
         std::vector<char> buffer(num_bytes);
@@ -242,7 +243,6 @@ namespace dbms::page
         std::cout << std::endl;
     }
 
-    // FIXME: Added page_test parameter for testing
     void write_fixed_len_pages(const std::string &csv_input_file, const std::string &output_page_file, int page_size)
     {
         std::ifstream csv_file(csv_input_file);
@@ -317,7 +317,6 @@ namespace dbms::page
         delete[] static_cast<char *>(page.data_);
     }
 
-   
     void read_fixed_len_pages(const std::string &output_page_file, int page_size)
     {
         std::ifstream input_file(output_page_file, std::ios::binary);

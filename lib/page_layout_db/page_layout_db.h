@@ -68,6 +68,8 @@ namespace dbms::page
     */
     int page_record_capacity(int page_size);
 
+    int get_record_count(Page *page);
+
     /**
      * Returns an int* to the beginning of the slot directory
      * NOTE: When traversing do in reverse: slot_dir[page->size - 1]
@@ -81,15 +83,13 @@ namespace dbms::page
     void print_page_records(Page *page);
 
 
-
     // Experiment 3.2: Appending Pages to a Binary File and Reading from a Binary File
     // [x]: Functions for the executables
 
     /**
      * Write the fixed length pages to a binary output file from csv file as an input
     */
-    void write_fixed_len_pages(const std::string& input_csv_file, 
-                        const std::string& output_page_file, int page_size);
+    void write_fixed_len_pages(const std::string& input_csv_file, const std::string& output_page_file, int page_size);
 
     /**
      * Read the fixed length pages that are in binary format in-memory (output file)
