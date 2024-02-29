@@ -30,7 +30,7 @@ int main() {
 
     Page *test_page = new Page;
     // Page *test_read_page = new Page;
-    int page_size = 16384;
+    int page_size = 500;
     int page_cap = page_record_capacity(page_size);
     init_fixed_len_page(test_page, page_size, page_cap + 2);
     // init_fixed_len_page(test_read_page, page_size, page_cap + 2);
@@ -51,22 +51,22 @@ int main() {
     // std::cout << "\n\n\n\nAfter Allocation of a Page:" << std::endl;
     for (int i = 0; i < 3; i++)
     {
-        fseek(test_heapfile->file_ptr_, dir_offset, SEEK_SET);
+        // fseek(test_heapfile->file_ptr_, dir_offset, SEEK_SET);
         alloc_page(test_heapfile);
     }
 
-    write_page(test_page, test_heapfile, 2);
+    // write_page(test_page, test_heapfile, 2);
     // read_page(test_heapfile, 2, test_read_page);
     // print_page_records(test_read_page);
     // std::cout << "\n\nPage Record Count: " << get_record_count(test_read_page) << std::endl;
 
-    RecordIterator test_iterator(test_heapfile);
+    // RecordIterator test_iterator(test_heapfile);
 
-    while(test_iterator.hasNext())
-    {
-        Record record_tester = test_iterator.next();
-        print_record(record_tester);
-    }
+    // while(test_iterator.hasNext())
+    // {
+    //     Record record_tester = test_iterator.next();
+    //     print_record(record_tester);
+    // }
 
 
    

@@ -96,6 +96,7 @@ namespace dbms::heap_file
             fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
             std::cout << "PROBLEM NOT HERE\n\n" << std::endl;
+            delete[] meta_buff;
             return 2;
 
         }
@@ -137,6 +138,7 @@ namespace dbms::heap_file
                         fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
                         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
                         std::cout << "\n\nPROBLEM NOT HERE PART TWO\n\n" << std::endl;
+                        delete[] meta_buff;
                         return i + 2;
                     }
 
@@ -158,29 +160,37 @@ namespace dbms::heap_file
             return;
         }
 
-        int heapdir_offset = ftell(heapfile->file_ptr_);
-        int metasize = heapfile->meta_data_size_;
-        int pagesize = heapfile->page_size_;
+        int offset_dir = ftell(heapfile->file_ptr_); 
+        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+        int* meta_dir = reinterpret_cast<int*>(meta_buff);
 
-        int* meta_dir = get_heapfile_directory(heapfile);
         int page_offset = meta_dir[pid];
 
         if (std::fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
         {
             std::cerr << "Seek failed in write_page function" << std::endl;
-            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            delete[] meta_buff;
             return;
         }
+
+        std::cout << "\n\nPROBLEM NOT HERE\n\n" << std::endl;
 
         // Write the page data to the file
         if (fwrite(reinterpret_cast<char*>(page->data_), sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
         {
             std::cerr << "Error writing page data to file" << std::endl;
-            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            delete[] meta_buff;
             return;
         }
 
-       std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+       std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+       delete[] meta_buff;
     }
 
     void read_page(Heapfile *heapfile, PageID pid, Page *page)
@@ -191,18 +201,21 @@ namespace dbms::heap_file
             return;
         }
 
-        int heapdir_offset = ftell(heapfile->file_ptr_);
-        int metasize = heapfile->meta_data_size_;
-        int pagesize = heapfile->page_size_;
-        
-        int* meta_dir = get_heapfile_directory(heapfile);
+        int offset_dir = ftell(heapfile->file_ptr_); 
+        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+        int* meta_dir = reinterpret_cast<int*>(meta_buff);
         int page_offset = meta_dir[pid];
         
         // Seek to the position of the page within the file
         if (std::fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
         {
             std::cerr << "Seek failed in read_page function" << std::endl;
-            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            delete[] meta_buff;
             return;
         }
 
@@ -213,13 +226,15 @@ namespace dbms::heap_file
         if (fread(page_buffer, sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
         {
             std::cerr << "Error reading page data from file" << std::endl;
-            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            delete[] meta_buff;
             return;
         }
 
         // Assign the read data to the page
         std::memcpy(reinterpret_cast<char*>(page->data_), page_buffer, heapfile->page_size_);
-        std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+        delete[] meta_buff;
     }
 
     int heapfile_capacity(int page_size, int address_size)
