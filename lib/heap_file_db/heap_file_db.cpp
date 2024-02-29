@@ -41,86 +41,88 @@ namespace dbms::heap_file
         std::memset(initial_buffer, 0, meta_effective_size);
         int* meta_dir = reinterpret_cast<int*>(initial_buffer);
         std::fill_n(meta_dir, hf_meta_size, 0);
-        meta_dir[0] = -1;
+        meta_dir[0] = 0;
 
         // Write only metadata to the file
-        fwrite(initial_buffer, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        std::fwrite(initial_buffer, sizeof(char), meta_effective_size, heapfile->file_ptr_);
         // Set the file pointer back to the start of the file
         // FIXME: Making an assumption here that I'd need to access the 
         // FIXME: directory once I leave this function call
-        fseek(heapfile->file_ptr_, dir_start_offset, SEEK_SET);
+        std::fseek(heapfile->file_ptr_, dir_start_offset, SEEK_SET);
         delete[] initial_buffer;
     }
 
     // [x] : Changed Implementation to Accomodate for Executables
     PageID alloc_page(Heapfile *heapfile)
     {
-        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
-        char meta_buff[meta_effective_size];
-        std::memset(meta_buff, 0, meta_effective_size); 
+        // NOTE: Assumption is that offsets are relative to the beginning of dir or pages
         // Pointer Offset to the Directory
         int offset_dir = ftell(heapfile->file_ptr_); 
-
-        fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
         int* meta_dir = reinterpret_cast<int*>(meta_buff);
-        // Set the file pointer back to the start of the file
-        // [x] : Change here
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);
 
         // First Page
         if (meta_dir[2] == 0)
         {
             // Move the file pointer to the appropriate position
             int offset = heapfile->meta_data_size_ * sizeof(int);
-    
-            if (fseek(heapfile->file_ptr_, offset_dir + offset, SEEK_SET) != 0) {
+            // File already at beginning of heap directory so just add offset
+            if (std::fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
                 // Handle error
                 std::cerr << "Seek Did Not Work" << std::endl;
+                std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                delete[] meta_buff;
+                return -1;
+
             }
 
             // Allocate New_Page
-            char* new_page = new char[heapfile->page_size_];
+            char new_page[heapfile->page_size_];
             std::memset(new_page, 0, heapfile->page_size_);
             fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
 
             // Update metadata
             meta_dir[1]++; // Page Counter
-            meta_dir[2] = offset_dir + offset;
-            meta_dir[3] = heapfile->page_size_;
+            meta_dir[2] = offset; // Page Offset Relative to the Heapfile Offset
+            meta_dir[3] = heapfile->page_size_; // Free Space
 
             // Rewrite the buffer into the page
             // Set the file pointer back to the start of the file
-            fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-            fwrite(meta_buff, sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
-            fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-
-            // Clean up
-            delete[] new_page;
-            delete[] meta_buff;
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
+            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            std::cout << "PROBLEM NOT HERE\n\n" << std::endl;
             return 2;
 
         }
 
         else if (meta_dir[1] < heapfile_capacity(heapfile->page_size_, 32))
         {
+            // If the heapfile supports more than 1 Page
             if (heapfile->meta_data_size_ > 4)
             {
+                // Iteration Starting from the first page slot
                 for (int i = 2; i < heapfile->meta_data_size_ - 2; i += 2)
                 {
-
                     if (meta_dir[i] != 0 && meta_dir[i + 2] == 0)
                     {
-                        // Move the file pointer to the appropriate position
-                        int offset = meta_dir[i]; // Calculate the offset based on meta_dir[i]
-                        fseek(heapfile->file_ptr_, 0, SEEK_SET);
+                        // Offset from the beginning of heapfile directory
+                        int offset = meta_dir[i];
 
-                        if (fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
+                        if (std::fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
                             // Handle error
                             std::cerr << "Seek Did Not Work" << std::endl;
+                            std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                            delete[] meta_buff;
+                            return -1;
                         }
 
                         // Allocate New_Page
-                        char* new_page = new char[heapfile->page_size_];
+                        char new_page[heapfile->page_size_];
                         std::memset(new_page, 0, heapfile->page_size_);
                         fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
 
@@ -131,13 +133,10 @@ namespace dbms::heap_file
 
                         // Rewrite the buffer into the page
                         // Set the file pointer back to the start of the file
-                        fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-                        fwrite(meta_buff, sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
-                        fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-
-                        // Clean up
-                        delete[] new_page;
-                        delete[] meta_buff;
+                        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                        fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
+                        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                        std::cout << "\n\nPROBLEM NOT HERE PART TWO\n\n" << std::endl;
                         return i + 2;
                     }
 
@@ -146,141 +145,10 @@ namespace dbms::heap_file
 
         }
         
-        fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
         delete[] meta_buff;
+        std::cout << "PAGES IN THIS HEAPFILE ARE FULL!" << std::endl;
         return -1;
     }
-
-    // [x] OPTIMIZE THIS FFS
-   /*  PageID alloc_page(Heapfile *heapfile)
-    {
-        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
-        char* meta_buff = new char[meta_effective_size]; 
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);   
-        fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
-        int* meta_dir = reinterpret_cast<int*>(meta_buff);
-        // Set the file pointer back to the start of the file
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);
-
-        for (int i = 2; i < heapfile->meta_data_size_ - 2; i += 2)
-        {
-
-            if (meta_dir[i] > 0 && meta_dir[i + 2] == 0)
-            {
-                // Move the file pointer to the appropriate position
-                int offset = meta_dir[i]; // Calculate the offset based on meta_dir[i]
-
-                if (fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
-                    // Handle error
-                    std::cerr << "Seek Did Not Work" << std::endl;
-                }
-
-                // Allocate New_Page
-                char* new_page = new char[heapfile->page_size_];
-                std::memset(new_page, 0, heapfile->page_size_);
-                fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
-
-                // Update metadata
-                meta_dir[1]++; 
-                meta_dir[i + 2] = meta_dir[i] + heapfile->page_size_;
-                meta_dir[i + 3] = heapfile->page_size_;
-
-                // Rewrite the buffer into the page
-                // Set the file pointer back to the start of the file
-                fseek(heapfile->file_ptr_, 0, SEEK_SET);
-                fwrite(meta_buff, sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
-                fseek(heapfile->file_ptr_, 0, SEEK_SET);
-
-                // Clean up
-                delete[] new_page;
-                delete[] meta_buff;
-                return i + 2;
-            }
-
-            else if (meta_dir[i] == 0)
-            {
-                // Move the file pointer to the appropriate position
-                long offset = heapfile->meta_data_size_ * sizeof(int);
-                // Set the file pointer back to the start of the file
-                fseek(heapfile->file_ptr_, 0, SEEK_SET);
-
-                if (fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
-                    // Handle error
-                    std::cerr << "Seek Did Not Work" << std::endl;
-                }
-
-                // Allocate New_Page
-                char* new_page = new char[heapfile->page_size_];
-                std::memset(new_page, 0, heapfile->page_size_);
-                fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
-
-                // Update metadata
-                meta_dir[1]++; // Page Counter
-                meta_dir[i] = offset;
-                meta_dir[i + 1] = heapfile->page_size_;
-
-                // Rewrite the buffer into the page
-                // Set the file pointer back to the start of the file
-                fseek(heapfile->file_ptr_, 0, SEEK_SET);
-                fwrite(meta_buff, sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
-                fseek(heapfile->file_ptr_, 0, SEEK_SET);
-
-                // Clean up
-                delete[] new_page;
-                delete[] meta_buff;
-                return i;
-
-            }
-
-        }
-        
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);
-        delete[] meta_buff;
-        return -1;
-    } */
-
-    /* void write_page(Page *page, Heapfile *heapfile, PageID pid)
-    {
-        if (!heapfile || !heapfile->file_ptr_ || !page)
-        {
-            std::cerr << "Write Page Failed: Invalid input parameters" << std::endl;
-            return;
-        }
-
-        // Calculate the offset of the page within the file
-        int page_offset = heapfile->meta_data_size_ * sizeof(int) + (pid - 1) * heapfile->page_size_;
-
-        // Seek to the position of the page within the file
-        if (fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
-        {
-            std::cerr << "Seek failed in write_page function" << std::endl;
-            return;
-        }
-
-        // Write the page data to the file
-        if (fwrite(page->data_, sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
-        {
-            std::cerr << "Error writing page data to file" << std::endl;
-            return;
-        }
-
-        // Update the free space slot of the page in the heapfile directory
-        int slot_offset = sizeof(int) * (pid * 2 + 1); // Offset of the free space slot in the directory
-        int free_space = fixed_len_page_freeslots(page);
-
-        if (fseek(heapfile->file_ptr_, slot_offset, SEEK_SET) != 0)
-        {
-            std::cerr << "Seek failed to update free space slot" << std::endl;
-            return;
-        }
-
-        // FIXME: Check this if it doesn't work
-        if (fwrite(&free_space, sizeof(int), 1, heapfile->file_ptr_) != 1)
-        {
-            std::cerr << "Error updating free space slot" << std::endl;
-            return;
-        }
-    } */
 
     void write_page(Page *page, Heapfile *heapfile, PageID pid)
     {
@@ -290,33 +158,30 @@ namespace dbms::heap_file
             return;
         }
 
-
+        int heapdir_offset = ftell(heapfile->file_ptr_);
         int metasize = heapfile->meta_data_size_;
         int pagesize = heapfile->page_size_;
 
-        char* metadata = new char[metasize * sizeof(int)];
-        fread(metadata, sizeof(char), metasize * sizeof(int), heapfile->file_ptr_);
-        int* meta_dir = reinterpret_cast<int*>(metadata);
+        int* meta_dir = get_heapfile_directory(heapfile);
         int page_offset = meta_dir[pid];
 
-
-
-        // Seek to the position of the page within the file
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);
-        if (fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
+        if (std::fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
         {
             std::cerr << "Seek failed in write_page function" << std::endl;
+            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
             return;
         }
 
         // Write the page data to the file
-        if (fwrite(page->data_, sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
+        if (fwrite(reinterpret_cast<char*>(page->data_), sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
         {
             std::cerr << "Error writing page data to file" << std::endl;
+            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
             return;
         }
-    }
 
+       std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+    }
 
     void read_page(Heapfile *heapfile, PageID pid, Page *page)
     {
@@ -326,41 +191,35 @@ namespace dbms::heap_file
             return;
         }
 
+        int heapdir_offset = ftell(heapfile->file_ptr_);
         int metasize = heapfile->meta_data_size_;
         int pagesize = heapfile->page_size_;
-        int heapdir_offset = ftell(heapfile->file_ptr_);
-
-        char* metadata = new char[metasize * sizeof(int)];
-        fread(metadata, sizeof(char), metasize * sizeof(int), heapfile->file_ptr_);
-        int* meta_dir = reinterpret_cast<int*>(metadata);
+        
+        int* meta_dir = get_heapfile_directory(heapfile);
         int page_offset = meta_dir[pid];
-
+        
         // Seek to the position of the page within the file
-        if (fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
+        if (std::fseek(heapfile->file_ptr_, page_offset, SEEK_SET) != 0)
         {
             std::cerr << "Seek failed in read_page function" << std::endl;
-            fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
             return;
         }
 
         // Allocate memory for reading the page data
-        char *page_buffer = new char[heapfile->page_size_];
+        char page_buffer[heapfile->page_size_];
 
         // Read the page data from the file
         if (fread(page_buffer, sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
         {
             std::cerr << "Error reading page data from file" << std::endl;
-            fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
-            delete[] page_buffer;
+            std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
             return;
         }
 
         // Assign the read data to the page
-        std::memcpy(page->data_, page_buffer, heapfile->page_size_);
-
-        // Cleanup dynamically allocated memory
-        delete[] page_buffer;
-        fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
+        std::memcpy(reinterpret_cast<char*>(page->data_), page_buffer, heapfile->page_size_);
+        std::fseek(heapfile->file_ptr_, heapdir_offset, SEEK_SET);
     }
 
     int heapfile_capacity(int page_size, int address_size)
@@ -393,7 +252,7 @@ namespace dbms::heap_file
         }
 
         // Set the file pointer back to the start of the file
-        fseek(heapfile->file_ptr_, 0, SEEK_SET);
+        std::fseek(heapfile->file_ptr_, 0, SEEK_SET);
         delete[] metadata;
         // fclose(heapfile->file_ptr_);
     }
@@ -404,12 +263,12 @@ namespace dbms::heap_file
         int metasize = heapfile->meta_data_size_;
         int pagesize = heapfile->page_size_;
 
-        char* metadata = new char[metasize * sizeof(int)];
+        char* metadata[metasize * sizeof(int)];
         fread(metadata, sizeof(char), metasize * sizeof(int), heapfile->file_ptr_);
         int* meta_dir = reinterpret_cast<int*>(metadata);
 
         // Set the file pointer back to the start of the file
-        fseek(heapfile->file_ptr_, heap_dir_offset, SEEK_SET);
+        std::fseek(heapfile->file_ptr_, heap_dir_offset, SEEK_SET);
 
         return meta_dir;
     }
@@ -449,14 +308,15 @@ namespace dbms::heap_file
         // to the next heapfile directory and append until no records left
 
         // Create a Heapfile Object
-        Heapfile *heapfile_new = new Heapfile;
-        init_heapfile(heapfile_new, page_size, file);
-        int page_id = alloc_page(heapfile_new);
+        Heapfile heapfile_new;;
+        init_heapfile(&heapfile_new, page_size, file);
+        int page_id = alloc_page(&heapfile_new);
         int heapfile_count = 1;
+        // Page 
         Page page_writer;
         init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
         int heapfile_page_cap = heapfile_capacity(page_size, 32);
-        int prev_file_ptr = ftell(heapfile_new->file_ptr_);
+        int prev_file_ptr = ftell(heapfile_new.file_ptr_);
 
 
         // Cases
@@ -481,68 +341,41 @@ namespace dbms::heap_file
 
             if (add_fixed_len_page(&page_writer, &record) == -1)
             {
-                if ((page_id/2) <= heapfile_page_cap)
+                if ((page_id/2) < heapfile_page_cap)
                 {
-                    write_page(&page_writer, heapfile_new, page_id);
-                    fseek(heapfile_new->file_ptr_, prev_file_ptr, SEEK_SET);
+                    write_page(&page_writer, &heapfile_new, page_id);
                     delete[] static_cast<char*>(page_writer.data_);
-                    page_writer.data_ = nullptr;
                     init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
                     add_fixed_len_page(&page_writer, &record);
-                    // FIXME: Set the file pointer to the beginning of heapfile
-                    page_id = alloc_page(heapfile_new);
+                    page_id = alloc_page(&heapfile_new);
+                
                 }
                 else
                 {
-                    // Create a new heapfile directory in the file
-                    int new_heap_dir_offset = fseek(heapfile_new->file_ptr_, 0, SEEK_END); // Move to the end of the file
-                    // Initialize Heapfile Again & Write
-                    int hf_page_cap = heapfile_capacity(page_size, 32);
-                    int hf_meta_size = heapfile_metadata_size(hf_page_cap);
-                    int meta_effective_size = hf_meta_size * sizeof(int);
-                    std::cout << "Heapfile Page Capacity: " << hf_page_cap << std::endl;
-                    std::cout << "Heapfile Meta Slots: " << hf_meta_size << std::endl;
-                
+                    write_page(&page_writer, &heapfile_new, page_id);
+                    delete[] static_cast<char*>(page_writer.data_);
+                    init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(&page_writer, &record);
+                    page_id = 0;
+                    int* heapfile_dir = get_heapfile_directory(&heapfile_new);
+                    int prev_rel_offset = heapfile_dir[0];
+                    int new_heap_dir_offset = std::fseek(heapfile_new.file_ptr_, 0, SEEK_END);
+                    int offset_to_newheap = new_heap_dir_offset - prev_rel_offset;
+                    heapfile_dir[0] = offset_to_newheap;
+                    std::fseek(heapfile_new.file_ptr_, prev_file_ptr, SEEK_SET);
+                    fwrite(reinterpret_cast<char*>(heapfile_dir), sizeof(char), 
+                                heapfile_new.meta_data_size_ * sizeof(int), heapfile_new.file_ptr_);
+                    std::fseek(heapfile_new.file_ptr_, 0, SEEK_END);
                     
-
-                    // heapfile->file_ptr_ = file;
-                    heapfile_new->meta_data_size_ = hf_meta_size;
-                    heapfile_new->page_size_ = page_size;
-                    heapfile_new->file_ptr_ = file;
-
-                    // Allocation of char* buffer
-                    char* initial_buffer = new char[meta_effective_size + page_size];
-                    std::memset(initial_buffer, 0, meta_effective_size + page_size);
-                    int* meta_dir = reinterpret_cast<int*>(initial_buffer);
-                    std::fill_n(meta_dir, hf_meta_size, 0);
-                    meta_dir[0] = -1;
-
-                    // Write only metadata to the file
-                    if (fwrite(initial_buffer, sizeof(char), meta_effective_size, heapfile_new->file_ptr_) != meta_effective_size) {
-                        std::cerr << "Error writing metadata to file" << std::endl;
-                        delete[] initial_buffer;
-                        return;
-                    }
-
-
-
-                    // Free initial_buffer as it's no longer needed
-                    delete[] initial_buffer;
-
+                    // Initialize Heapfile Again
+                    init_heapfile(&heapfile_new, page_size, file);
+                    heapfile_dir = get_heapfile_directory(&heapfile_new);
 
                     // Allocate Page
-                    page_id = alloc_page(heapfile_new);
+                    page_id = alloc_page(&heapfile_new);
                     add_fixed_len_page(&page_writer, &record);
-                    // FIXME: NEED ATTENTION ABOVE
-
-                    // Update the offset in the previous heap directory's first slot
-                    fseek(heapfile_new->file_ptr_, prev_file_ptr, SEEK_SET);
-                    if (fwrite(&new_heap_dir_offset, sizeof(int), 1, heapfile_new->file_ptr_) != 1) {
-                        std::cerr << "Error updating previous heap directory's first slot" << std::endl;
-                        return;
-                    }
-
                     prev_file_ptr = new_heap_dir_offset;
+                    heapfile_count++;
 
                 }
 
@@ -552,9 +385,8 @@ namespace dbms::heap_file
         
         }
 
-        fclose(heapfile_new->file_ptr_);
+        fclose(heapfile_new.file_ptr_);
         delete[] static_cast<char*>(page_writer.data_);
-        delete heapfile_new;
     }
 
 
@@ -566,7 +398,7 @@ namespace dbms::heap_file
             return;
         }
 
-        fseek(file, 0, SEEK_SET);
+        std::fseek(file, 0, SEEK_SET);
 
         Heapfile* heapfile_obj = new Heapfile;
         init_heapfile(heapfile_obj, page_size, file);

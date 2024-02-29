@@ -16,14 +16,14 @@ using namespace dbms::page;
 
 int main() {
 
-    csv_to_heapfile("people-test.csv", "heapfile-output", 1500);
-    scan("heapfile-output", 1500);
+    // csv_to_heapfile("people-test.csv", "heapfile-output", 500);
+    // scan("heapfile-output", 1500);
 
 
     // BUG: Undefined Behaviour at INT MAX
-    /* // write_fixed_len_pages(filename, out_filename, 2147483646);
+    // write_fixed_len_pages(filename, out_filename, 2147483646);
     std::string csv_file_name = "people-test.csv";
-    std::string output_file_name = "page_output";
+    std::string output_file_name = "heapfile-output";
 
     // write_fixed_len_pages(csv_file_name, output_file_name, 100000);
     // read_fixed_len_pages(output_file_name, 100000); 
@@ -39,7 +39,8 @@ int main() {
 
 
     Heapfile *test_heapfile = new Heapfile;
-    FILE *file = fopen("heapfile_output", "r+");
+    FILE *file = fopen("heapfile-output", "r+");
+    int dir_offset = ftell(file);
     if (file != nullptr)
     {
         std::cout << "Opened" << std::endl;
@@ -50,6 +51,7 @@ int main() {
     // std::cout << "\n\n\n\nAfter Allocation of a Page:" << std::endl;
     for (int i = 0; i < 3; i++)
     {
+        fseek(test_heapfile->file_ptr_, dir_offset, SEEK_SET);
         alloc_page(test_heapfile);
     }
 
@@ -65,7 +67,7 @@ int main() {
         Record record_tester = test_iterator.next();
         print_record(record_tester);
     }
- */
+
 
    
 
@@ -90,12 +92,12 @@ int main() {
     // test_heapfile->file_ptr_ = new_file;
     // get_heapfile_directory(test_heapfile);
     
-    /* delete[] static_cast<char*>(test_page->data_);
+    delete[] static_cast<char*>(test_page->data_);
     // delete[] static_cast<char*>(test_read_page->data_);
     delete test_page;
     // delete test_read_page;
     fclose(file);
-    delete test_heapfile; */
+    delete test_heapfile;
     return 0;
 }
 
