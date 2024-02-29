@@ -95,7 +95,7 @@ namespace dbms::heap_file
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
             fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-            std::cout << "PROBLEM NOT HERE\n\n" << std::endl;
+            // std::cout << "PROBLEM NOT HERE\n\n" << std::endl;
             delete[] meta_buff;
             return 2;
 
@@ -137,7 +137,7 @@ namespace dbms::heap_file
                         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
                         fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
                         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
-                        std::cout << "\n\nPROBLEM NOT HERE PART TWO\n\n" << std::endl;
+                        // std::cout << "\n\nPROBLEM NOT HERE PART TWO\n\n" << std::endl;
                         delete[] meta_buff;
                         return i + 2;
                     }
@@ -160,6 +160,8 @@ namespace dbms::heap_file
             return;
         }
 
+        // print_page_records(page);
+
         int offset_dir = ftell(heapfile->file_ptr_); 
         int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
         char* meta_buff = new char[meta_effective_size];
@@ -178,10 +180,10 @@ namespace dbms::heap_file
             return;
         }
 
-        std::cout << "\n\nPROBLEM NOT HERE\n\n" << std::endl;
+        // std::cout << "\n\nPROBLEM NOT HERE\n\n" << std::endl;
 
         // Write the page data to the file
-        if (fwrite(reinterpret_cast<char*>(page->data_), sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
+        if (fwrite(static_cast<char*>(page->data_), sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
         {
             std::cerr << "Error writing page data to file" << std::endl;
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
@@ -323,15 +325,18 @@ namespace dbms::heap_file
         // to the next heapfile directory and append until no records left
 
         // Create a Heapfile Object
-        Heapfile heapfile_new;;
-        init_heapfile(&heapfile_new, page_size, file);
-        int page_id = alloc_page(&heapfile_new);
+        Heapfile *heapfile_new = new Heapfile;
+        init_heapfile(heapfile_new, page_size, file);
+        int page_id = alloc_page(heapfile_new);
         int heapfile_count = 1;
         // Page 
-        Page page_writer;
-        init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
+        Page *page_writer = new Page;
+        std::cout << "\nPage Record Capacity: " << page_record_capacity(page_size) << std::endl;
+        init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
         int heapfile_page_cap = heapfile_capacity(page_size, 32);
-        int prev_file_ptr = ftell(heapfile_new.file_ptr_);
+        int prev_file_ptr = ftell(heapfile_new->file_ptr_);
+        int record_count{0};
+        int test_count{0};
 
 
         // Cases
@@ -353,55 +358,72 @@ namespace dbms::heap_file
                 record.push_back(cell_str);
             }
 
+    
+            // print_record(record);
 
-            if (add_fixed_len_page(&page_writer, &record) == -1)
+            if (add_fixed_len_page(page_writer, &record) == -1)
             {
                 if ((page_id/2) < heapfile_page_cap)
                 {
-                    write_page(&page_writer, &heapfile_new, page_id);
-                    delete[] static_cast<char*>(page_writer.data_);
-                    init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
-                    add_fixed_len_page(&page_writer, &record);
-                    page_id = alloc_page(&heapfile_new);
+                    std::cout << "Page ID: " << page_id << std::endl;
+                    print_page_records(page_writer);
+                    write_page(page_writer, heapfile_new, page_id);
+                    delete[] static_cast<char*>(page_writer->data_);
+                    init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(page_writer, &record);
+                    page_id = alloc_page(heapfile_new);
                 
                 }
                 else
                 {
-                    write_page(&page_writer, &heapfile_new, page_id);
-                    delete[] static_cast<char*>(page_writer.data_);
-                    init_fixed_len_page(&page_writer, page_size, page_record_capacity(page_size) + 2);
-                    add_fixed_len_page(&page_writer, &record);
+                    std::cout << "Page ID: " << page_id << std::endl;
+                    print_page_records(page_writer);
+                    write_page(page_writer, heapfile_new, page_id);
+                    delete[] static_cast<char*>(page_writer->data_);
+                    init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(page_writer, &record);
                     page_id = 0;
-                    int* heapfile_dir = get_heapfile_directory(&heapfile_new);
+                    int* heapfile_dir = get_heapfile_directory(heapfile_new);
                     int prev_rel_offset = heapfile_dir[0];
-                    int new_heap_dir_offset = std::fseek(heapfile_new.file_ptr_, 0, SEEK_END);
+                    int new_heap_dir_offset = std::fseek(heapfile_new->file_ptr_, 0, SEEK_END);
                     int offset_to_newheap = new_heap_dir_offset - prev_rel_offset;
                     heapfile_dir[0] = offset_to_newheap;
-                    std::fseek(heapfile_new.file_ptr_, prev_file_ptr, SEEK_SET);
+                    std::fseek(heapfile_new->file_ptr_, prev_file_ptr, SEEK_SET);
                     fwrite(reinterpret_cast<char*>(heapfile_dir), sizeof(char), 
-                                heapfile_new.meta_data_size_ * sizeof(int), heapfile_new.file_ptr_);
-                    std::fseek(heapfile_new.file_ptr_, 0, SEEK_END);
+                                heapfile_new->meta_data_size_ * sizeof(int), heapfile_new->file_ptr_);
+                    std::fseek(heapfile_new->file_ptr_, 0, SEEK_END);
                     
                     // Initialize Heapfile Again
-                    init_heapfile(&heapfile_new, page_size, file);
-                    heapfile_dir = get_heapfile_directory(&heapfile_new);
+                    init_heapfile(heapfile_new, page_size, file);
+                    heapfile_dir = get_heapfile_directory(heapfile_new);
 
                     // Allocate Page
-                    page_id = alloc_page(&heapfile_new);
-                    add_fixed_len_page(&page_writer, &record);
+                    page_id = alloc_page(heapfile_new);
+                    add_fixed_len_page(page_writer, &record);
                     prev_file_ptr = new_heap_dir_offset;
                     heapfile_count++;
 
                 }
 
             }
+            
+            else if (csv_input.eof())
+            {
+                std::cout << "Page ID: " << page_id << std::endl;
+                print_page_records(page_writer);
+                write_page(page_writer, heapfile_new, page_id);
+
+            }
 
             cleanup_record(record);
-        
         }
 
-        fclose(heapfile_new.file_ptr_);
-        delete[] static_cast<char*>(page_writer.data_);
+        std::fseek(heapfile_new->file_ptr_, 0, SEEK_SET);
+        fclose(heapfile_new->file_ptr_);
+        delete[] static_cast<char*>(page_writer->data_);
+        delete page_writer;
+        heapfile_new->file_ptr_ = nullptr;
+        delete heapfile_new;
     }
 
 

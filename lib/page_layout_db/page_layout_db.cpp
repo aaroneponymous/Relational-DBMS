@@ -82,15 +82,19 @@ namespace dbms::page
     {
         // Get Page's Slot Directory
         int *slot_dir = get_slot_directory(page);
+        
         // Space for the new record
         int required_space = ATTRIBUTE_FIXED_LENGTH * r->size();
 
         if (slot_dir[page->slot_size_ - 2] != -1)
         {
+            // std::cout << "ENTERING HERE I" << std::endl;
             for (int i = page->slot_size_ - 3; i >= 0; i--)
             {
+                // std::cout << "ENTERING HERE II" << std::endl;
                 if (slot_dir[i] == -1)
                 {
+                    // std::cout << "ENTERING HERE III" << std::endl;
                     fixed_len_write(r, reinterpret_cast<char *>(page->data_) + slot_dir[page->slot_size_ - 2]);
                     slot_dir[i] = slot_dir[page->slot_size_ - 2];
                     slot_dir[page->slot_size_ - 1]++;
@@ -110,10 +114,16 @@ namespace dbms::page
                         slot_dir[page->slot_size_ - 2] = -1;
                     }
 
+                    // std::cout << "\nPrinting Slot Directory\n" << std::endl;
+                    // print_slot_dir(page);
+
                     return i; // Record Slot Offset
                 }
             }
         }
+
+        // std::cout << "\nPrinting Slot Directory\n" << std::endl;
+        // print_slot_dir(page);
 
         return -1;
     }
@@ -167,6 +177,17 @@ namespace dbms::page
     {
         return reinterpret_cast<int *>(reinterpret_cast<char *>(page->data_) + page->page_size_ - page->slot_size_ * sizeof(int));
     }
+
+    void print_slot_dir(Page *page) 
+    {
+        int *slot_dir = get_slot_directory(page);
+        int num_slots = page->slot_size_;
+
+        for (int i = 0; i < num_slots; ++i) {
+            int slot_value = slot_dir[i];
+            std::cout << "Slot [" << i << "] : " << slot_value << std::endl;
+        }
+    }
     
     void add_records_to_page(Page *page, const std::string &csv_input_file)
     {
@@ -210,8 +231,11 @@ namespace dbms::page
         }
 
         int *slot_dir = get_slot_directory(page);
+        std::cout << "\nPrinting Slot Directory\n" << std::endl;
+        print_slot_dir(page);
 
         std::cout << "Printing records in the page:" << std::endl;
+        int record_count{0};
 
         // Iterate over slots in reverse order to print records
         for (int i = page->slot_size_ - 3; i >= 0; i--)
@@ -220,6 +244,8 @@ namespace dbms::page
             {
                 Record record;
                 read_fixed_len_page(page, i, &record);
+                record_count++;
+                std::cout << "RECORD " << record_count << std::endl;
                 print_record(record);
                 cleanup_record(record);
             }

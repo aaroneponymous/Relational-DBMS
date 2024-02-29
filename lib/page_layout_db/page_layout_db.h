@@ -82,6 +82,8 @@ namespace dbms::page
 
     void print_page_records(Page *page);
 
+    void print_slot_dir(Page *page);
+
 
     // Experiment 3.2: Appending Pages to a Binary File and Reading from a Binary File
     // [x]: Functions for the executables

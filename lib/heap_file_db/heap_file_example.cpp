@@ -16,12 +16,42 @@ using namespace dbms::page;
 
 int main() {
 
-    // csv_to_heapfile("people-test.csv", "heapfile-output", 500);
-    // scan("heapfile-output", 1500);
+
+    // BUG: Page Size Has to be 16384 to Insert Records?
+    int page_size = 11000;
+    int page_cap = page_record_capacity(page_size);
+    csv_to_heapfile("people-100.csv", "heapfile-output", page_size);
+    // scan("heapfile-output", page_size);
+
+
+    /* Heapfile *test_heapfile = new Heapfile;
+    FILE *file = fopen("heapfile-output", "r+");
+    init_heapfile(test_heapfile, 500, file);
+
+    Page *test_read_page = new Page;
+    init_fixed_len_page(test_read_page, page_size, page_cap + 2);
+    read_page(test_heapfile, 2, test_read_page);
+    print_page_records(test_read_page);
+    std::cout << "\n\nPage Record Count: " << get_record_count(test_read_page) << std::endl;
+    delete[] static_cast<char*>(test_read_page->data_);
+    init_fixed_len_page(test_read_page, page_size, page_cap + 2);
+    read_page(test_heapfile, 4, test_read_page);
+    print_page_records(test_read_page);
+
+
+    delete[] static_cast<char*>(test_read_page->data_);
+
+    delete test_read_page;
+    // delete test_read_page;
+    fclose(file);
+    delete test_heapfile; */
+
+    
+    
 
 
     // BUG: Undefined Behaviour at INT MAX
-    // write_fixed_len_pages(filename, out_filename, 2147483646);
+    /* // write_fixed_len_pages(filename, out_filename, 2147483646);
     std::string csv_file_name = "people-test.csv";
     std::string output_file_name = "heapfile-output";
 
@@ -55,7 +85,7 @@ int main() {
         alloc_page(test_heapfile);
     }
 
-    // write_page(test_page, test_heapfile, 2);
+    write_page(test_page, test_heapfile, 2);
     // read_page(test_heapfile, 2, test_read_page);
     // print_page_records(test_read_page);
     // std::cout << "\n\nPage Record Count: " << get_record_count(test_read_page) << std::endl;
@@ -66,7 +96,7 @@ int main() {
     // {
     //     Record record_tester = test_iterator.next();
     //     print_record(record_tester);
-    // }
+    // } */
 
 
    
@@ -92,12 +122,12 @@ int main() {
     // test_heapfile->file_ptr_ = new_file;
     // get_heapfile_directory(test_heapfile);
     
-    delete[] static_cast<char*>(test_page->data_);
+    /* delete[] static_cast<char*>(test_page->data_);
     // delete[] static_cast<char*>(test_read_page->data_);
     delete test_page;
     // delete test_read_page;
     fclose(file);
-    delete test_heapfile;
+    delete test_heapfile; */
     return 0;
 }
 
