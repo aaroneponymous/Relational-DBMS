@@ -597,7 +597,7 @@ namespace dbms::heap_file
         delete heapfile_new;
     }
 
-    void scan(const char* heapfile, const int page_size) 
+    /* void scan(const char* heapfile, const int page_size) 
     {
         FILE* file = fopen(heapfile, "rb");
         if (!file) {
@@ -609,32 +609,6 @@ namespace dbms::heap_file
 
         Heapfile *test_heapfile = new Heapfile;
         init_heapfile(test_heapfile, page_size, file);
-        // print_heapfile_directory(test_heapfile);
-        /* int offset_dir = ftell(test_heapfile->file_ptr_); 
-        int meta_effective_size = test_heapfile->meta_data_size_ * sizeof(int);
-        char* meta_buff = new char[meta_effective_size];
-        std::memset(meta_buff, 0, meta_effective_size);
-        std::fread(meta_buff, sizeof(char), meta_effective_size, test_heapfile->file_ptr_);
-        std::fseek(test_heapfile->file_ptr_, offset_dir, SEEK_SET);
-        int* meta_dir = reinterpret_cast<int*>(meta_buff);
-        int total_pages = 2 * meta_dir[1];
-
-        
-        for (int i = 2; i <= total_pages; i += 2)
-        {
-            if (meta_dir[i] > 0)
-            {
-                Page *test_read_page = new Page;
-                init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
-                read_page(test_heapfile, i, test_read_page);
-                print_page_records(test_read_page);
-                delete[] static_cast<char*>(test_read_page->data_);
-                delete test_read_page;
-                
-            }
-
-        } */
-
         print_heapfile_contents(test_heapfile, page_size);
 
         fclose(file);
@@ -642,7 +616,58 @@ namespace dbms::heap_file
         delete test_heapfile;
         // delete[] static_cast<char*>(test_read_page->data_);
         // delete[] meta_buff;
+    } */
+
+    void scan(const char* heapfile, const int page_size) 
+    {
+        FILE* file = fopen(heapfile, "rb");
+        if (!file) {
+            std::cerr << "Error opening heapfile: " << heapfile << std::endl;
+            return;
+        }
+
+        
+        Heapfile *current_heapfile = new Heapfile;
+        init_heapfile(current_heapfile, page_size, file);
+        
+
+        int offset_dir = ftell(current_heapfile->file_ptr_); 
+        int meta_effective_size = current_heapfile->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, current_heapfile->file_ptr_);
+        std::fseek(current_heapfile->file_ptr_, offset_dir, SEEK_SET);
+        int* heapfile_dir = reinterpret_cast<int*>(meta_buff);
+        int offset_to_new_heap = heapfile_dir[0];
+
+        while (true) {
+            
+            if (heapfile_dir[0] == 0) {
+                // Single heapfile, print its contents and exit loop
+                print_heapfile_contents(current_heapfile, page_size);
+                break;
+            } else {
+
+                print_heapfile_contents(current_heapfile, page_size);
+                std::fseek(current_heapfile->file_ptr_, offset_to_new_heap, SEEK_SET);
+                init_heapfile_read(current_heapfile, page_size, current_heapfile->file_ptr_);
+                int offset_dir = ftell(current_heapfile->file_ptr_); 
+                int meta_effective_size = current_heapfile->meta_data_size_ * sizeof(int);
+                char* new_buff = new char[meta_effective_size];
+                std::memset(new_buff, 0, meta_effective_size);
+                std::fread(new_buff, sizeof(char), meta_effective_size, current_heapfile->file_ptr_);
+                std::fseek(current_heapfile->file_ptr_, offset_dir, SEEK_SET);
+                heapfile_dir = reinterpret_cast<int*>(new_buff);
+                offset_to_new_heap += heapfile_dir[0];
+                
+                
+            }
+        }
+
+        fclose(file);
+        delete current_heapfile;
     }
+
      
     void insert_csv_to_heapfile(const char* heapfile, const char* csv_file, const int page_size) 
     {

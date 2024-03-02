@@ -22,8 +22,8 @@ int main() {
     int page_cap = page_record_capacity(page_size);
     csv_to_heapfile("people-100.csv", "heapfile-output", page_size);
     scan("heapfile-output", page_size);
-    // insert_csv_to_heapfile("heapfile-output", "people-test.csv", page_size);
-    // scan("heapfile-output", page_size);
+    insert_csv_to_heapfile("heapfile-output", "people-test.csv", page_size);
+    scan("heapfile-output", page_size);
     
     /* Heapfile *tester_it = new Heapfile;
     FILE *file = fopen("heapfile-output", "r+");

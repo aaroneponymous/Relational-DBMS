@@ -275,10 +275,20 @@ namespace dbms::page
         std::ifstream csv_file(csv_input_file);
         std::ofstream page_file(output_page_file, std::ios::binary | std::ios::app); // Open for appending in binary mode
 
-        if (!csv_file.is_open() || !page_file.is_open())
+        if (!csv_file.is_open())
         {
-            std::cerr << "Error opening file(s)." << std::endl;
+            std::cerr << "Error opening CSV file." << std::endl;
             return;
+        }
+
+        if (!page_file.is_open())
+        {
+            if (!page_file.is_open())
+            {
+                std::cerr << "Error opening CSV file." << std::endl;
+                return;
+            }
+            
         }
 
         int page_records_cap = page_record_capacity(page_size); 
