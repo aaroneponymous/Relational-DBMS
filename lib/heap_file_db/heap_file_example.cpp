@@ -18,7 +18,7 @@ int main() {
 
 
     // BUG: Page Size Has to be 16384 to Insert Records?
-    int page_size = 12000;
+    int page_size = 1200;
     int record_cap = page_record_capacity(page_size);
     int heap_cap = heapfile_capacity(page_size, 32);
 
@@ -43,7 +43,7 @@ int main() {
 
 
     csv_to_heapfile("people-100.csv", "heapfile-output", page_size);
-    // update("heapfile-output", new_record, 0, "1234567891", page_size);
+    update("heapfile-output", new_record, 0, "1234567891", page_size);
     scan("heapfile-output", page_size);
 
 

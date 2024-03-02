@@ -960,6 +960,8 @@ namespace dbms::heap_file
         int heap_id = calculate_heap_id(record_id.page_id_, heap_cap);
         int place_holder{1};
         int record_slot = record_id.slot_;
+
+        std::cout << "PAGE ID: " << page_id << std::endl;
         
 
         FILE* file = fopen(heapfile, "rb+");
@@ -972,7 +974,8 @@ namespace dbms::heap_file
 
         int prev_file_ptr = ftell(file);
         Heapfile* heapfile_obj = new Heapfile;
-        init_heapfile(heapfile_obj, page_size, file);
+        init_heapfile_read(heapfile_obj, page_size, file);
+        // print_heapfile_directory(heapfile_obj);
         int meta_effective_size = heapfile_obj->meta_data_size_ * sizeof(int);
         char* meta_buff = new char[meta_effective_size];
         std::memset(meta_buff, 0, meta_effective_size);
@@ -1002,16 +1005,16 @@ namespace dbms::heap_file
         // Get Page
         Page* cur_page = new Page;
         init_fixed_len_page(cur_page, page_size, page_record_capacity(page_size) + 2);
-        read_page(heapfile_obj, prev_file_ptr, cur_page);
+        read_page(heapfile_obj, page_id, cur_page);
         std::cout << "Heap Cap : " << heap_cap << std::endl;
         std::cout << "Page ID : " << page_id << std::endl;
         std::cout << "Record ID : " << record_slot << std::endl;
 
-        print_page_records(cur_page);
+        // print_page_records(cur_page);
         // Retrieve Record
         Record record_update;
         read_fixed_len_page(cur_page, record_slot, &record_update);
-        print_page_records(cur_page);
+        // print_page_records(cur_page);
 
         // Update the specified attribute with new_value
         if (attribute_id < record_update.size()) 
@@ -1026,10 +1029,9 @@ namespace dbms::heap_file
         }
 
         
-        print_page_records(cur_page);
+        // print_page_records(cur_page);
         // Write the updated record back to the page
         write_fixed_len_page(cur_page, record_slot, &record_update);
-
         // Write the page back to the heapfile
         write_page(cur_page, heapfile_obj, page_id);
         
