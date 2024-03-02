@@ -12,5 +12,5 @@
 # Ignore compiled binaries
 /bin/
 
-heapfile-output*
+heapfile-output
 
