@@ -1,0 +1,142 @@
+    void csv_to_heapfile(const char* csv_file, const char* heapfile, const int page_size)
+    {
+        FILE* file = fopen(heapfile, "rb+");
+        std::string input = csv_file;
+        std::ifstream csv_input(input);
+
+        int heapfile_page_cap = heapfile_capacity(page_size, 32);
+        int heapfile_slots = heapfile_page_cap * 2 + 2;
+        if (heapfile_page_cap < 1)
+        {
+            std::cerr << "NO RECORDS CAN BE ADDED TO PAGE SIZE: " << page_size << std::endl;
+            return;
+        }
+
+        if (!csv_input.is_open())
+        {
+            std::cerr << "Error Opening CSV file" << std::endl;
+            return;
+        }
+
+        if (file == nullptr)
+        {
+            // Create file - doesn't exist
+            file = fopen(heapfile, "wb");
+            if (file == nullptr)
+            {
+                std::cerr << "File Note Created: nullptr" << std::endl;
+                return;
+            }
+
+            fclose(file);
+            fopen(heapfile, "r+");
+        }
+
+        // Read Records and Write to File
+        // If pages are full
+        // Set an offset in the first slot of heapfile directory
+        // to the next heapfile directory and append until no records left
+
+        // Create a Heapfile Object
+        Heapfile *heapfile_new = new Heapfile;
+        init_heapfile(heapfile_new, page_size, file);
+        int page_id = alloc_page(heapfile_new);
+        int heapfile_count = 1;
+        // Page 
+        Page *page_writer = new Page;
+        init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
+        int prev_file_ptr = ftell(heapfile_new->file_ptr_);
+        int record_count{0};
+        int test_count{0};
+        
+
+
+        // Cases
+        // 1. When Page is Full
+        // 2. When Entire Directory is Full
+
+        std::string line;
+
+        while (std::getline(csv_input, line))
+        {
+            std::stringstream line_stream(line);
+            std::string cell;
+            Record record;
+
+            while (std::getline(line_stream, cell, ','))
+            {
+                char *cell_str = new char[cell.length() + 1];
+                std::strcpy(cell_str, cell.c_str());
+                record.push_back(cell_str);
+            }
+
+    
+            // print_record(record);
+
+            if (add_fixed_len_page(page_writer, &record) == -1)
+            {
+                if ((page_id/2) <= heapfile_slots)
+                {
+                    // std::cout << "Page ID: " << page_id << std::endl;
+                    // print_page_records(page_writer);
+                    write_page(page_writer, heapfile_new, page_id);
+                    delete[] static_cast<char*>(page_writer->data_);
+                    
+                    init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(page_writer, &record);
+                    page_id = alloc_page(heapfile_new);
+                    std::cout << "PAGE RETURNED: " << page_id << std::endl;
+                
+                }
+                else
+                {
+                    // std::cout << "Page ID: " << page_id << std::endl;
+                    // print_page_records(page_writer);
+                    write_page(page_writer, heapfile_new, page_id);
+                    delete[] static_cast<char*>(page_writer->data_);
+                    
+                    init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(page_writer, &record);
+                    page_id = 0;
+                    int* heapfile_dir = get_heapfile_directory(heapfile_new);
+                    int prev_rel_offset = heapfile_dir[0];
+                    int new_heap_dir_offset = std::fseek(heapfile_new->file_ptr_, 0, SEEK_END);
+                    int offset_to_newheap = new_heap_dir_offset - prev_rel_offset;
+                    heapfile_dir[0] = offset_to_newheap;
+                    std::fseek(heapfile_new->file_ptr_, prev_file_ptr, SEEK_SET);
+                    fwrite(reinterpret_cast<char*>(heapfile_dir), sizeof(char), 
+                                heapfile_new->meta_data_size_ * sizeof(int), heapfile_new->file_ptr_);
+                    std::fseek(heapfile_new->file_ptr_, 0, SEEK_END);
+                    
+                    // Initialize Heapfile Again
+                    init_heapfile(heapfile_new, page_size, file);
+                    heapfile_dir = get_heapfile_directory(heapfile_new);
+
+                    // Allocate Page
+                    page_id = alloc_page(heapfile_new);
+                    add_fixed_len_page(page_writer, &record);
+                    prev_file_ptr = new_heap_dir_offset;
+                    heapfile_count++;
+
+                }
+
+            }
+            
+            else if (csv_input.eof())
+            {
+                write_page(page_writer, heapfile_new, page_id);
+
+            }
+
+            cleanup_record(record);
+        }
+
+        write_page(page_writer, heapfile_new, page_id);
+        
+
+        fclose(heapfile_new->file_ptr_);
+        delete[] static_cast<char*>(page_writer->data_);
+        delete page_writer;
+        heapfile_new->file_ptr_ = nullptr;
+        delete heapfile_new;
+    }

@@ -18,18 +18,65 @@ int main() {
 
 
     // BUG: Page Size Has to be 16384 to Insert Records?
-    int page_size = 11000;
+    int page_size = 1200;
     int page_cap = page_record_capacity(page_size);
     csv_to_heapfile("people-100.csv", "heapfile-output", page_size);
     // scan("heapfile-output", page_size);
+    
+    /* Heapfile *tester_it = new Heapfile;
+    FILE *file = fopen("heapfile-output", "r+");
+
+    init_heapfile(tester_it, page_size, file);
+    RecordIterator test_iterator(tester_it);
+
+    fclose(file);
+    delete tester_it; */ 
+
+
+
 
 
     /* Heapfile *test_heapfile = new Heapfile;
-    FILE *file = fopen("heapfile-output", "r+");
-    init_heapfile(test_heapfile, 500, file);
+    FILE *file = fopen("heapfile-output", "rb");
+    init_heapfile(test_heapfile, page_size, file);
+    // print_heapfile_directory(test_heapfile);
+    int offset_dir = ftell(test_heapfile->file_ptr_); 
+    int meta_effective_size = test_heapfile->meta_data_size_ * sizeof(int);
+    char* meta_buff = new char[meta_effective_size];
+    std::memset(meta_buff, 0, meta_effective_size);
+    std::fread(meta_buff, sizeof(char), meta_effective_size, test_heapfile->file_ptr_);
+    std::fseek(test_heapfile->file_ptr_, offset_dir, SEEK_SET);
+    int* meta_dir = reinterpret_cast<int*>(meta_buff);
+    int total_pages = 2 * meta_dir[1];
+    std:: cout << "TOTAL PAGES: " << total_pages/2 << std::endl;
+    print_heapfile_directory(test_heapfile);
 
-    Page *test_read_page = new Page;
-    init_fixed_len_page(test_read_page, page_size, page_cap + 2);
+    
+    for (int i = 2; i < 24; i += 2)
+    {
+        if (meta_dir[i] > 0)
+        {
+            
+            Page *test_read_page = new Page;
+            init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+            read_page(test_heapfile, i, test_read_page);
+            print_page_records(test_read_page);
+            delete[] static_cast<char*>(test_read_page->data_);
+            delete test_read_page;
+            
+        }
+
+    }
+
+    fclose(file);
+    // test_heapfile->file_ptr_ = nullptr;
+    delete test_heapfile;
+    // delete[] static_cast<char*>(test_read_page->data_);
+    delete[] meta_buff; */
+
+    
+
+    /* init_fixed_len_page(test_read_page, page_size, page_cap + 2);
     read_page(test_heapfile, 2, test_read_page);
     print_page_records(test_read_page);
     std::cout << "\n\nPage Record Count: " << get_record_count(test_read_page) << std::endl;
@@ -44,7 +91,7 @@ int main() {
     delete test_read_page;
     // delete test_read_page;
     fclose(file);
-    delete test_heapfile; */
+    delete test_heapfile;
 
     
     
@@ -122,12 +169,12 @@ int main() {
     // test_heapfile->file_ptr_ = new_file;
     // get_heapfile_directory(test_heapfile);
     
-    /* delete[] static_cast<char*>(test_page->data_);
     // delete[] static_cast<char*>(test_read_page->data_);
-    delete test_page;
+    // delete[] static_cast<char*>(test_read_page->data_);
     // delete test_read_page;
-    fclose(file);
-    delete test_heapfile; */
+    // delete test_read_page;
+    // fclose(file);
+    // delete test_heapfile;
     return 0;
 }
 

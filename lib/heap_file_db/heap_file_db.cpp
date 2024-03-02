@@ -66,7 +66,7 @@ namespace dbms::heap_file
         int* meta_dir = reinterpret_cast<int*>(meta_buff);
 
         // First Page
-        if (meta_dir[2] == 0)
+        if (meta_dir[1] == 0)
         {
             // Move the file pointer to the appropriate position
             int offset = heapfile->meta_data_size_ * sizeof(int);
@@ -80,10 +80,15 @@ namespace dbms::heap_file
 
             }
 
+            std::cout << "Page Number : " << 2 << "\n";
+            std::cout << "File Pointer Position Page ID (Before New Page): " << " - " << ftell(heapfile->file_ptr_) << "\n";
+
             // Allocate New_Page
             char new_page[heapfile->page_size_];
             std::memset(new_page, 0, heapfile->page_size_);
             fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
+
+            std::cout << "File Pointer Position Page ID (After New Page): " << " - " << ftell(heapfile->file_ptr_) << "\n";
 
             // Update metadata
             meta_dir[1]++; // Page Counter
@@ -93,8 +98,13 @@ namespace dbms::heap_file
             // Rewrite the buffer into the page
             // Set the file pointer back to the start of the file
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+
+            std::cout << "File Pointer Position Page ID (Rewrite Dir): " << " - " << ftell(heapfile->file_ptr_) << "\n";
             fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
+            std::cout << "File Pointer Position Page ID (After Rewrite): " << " - " << ftell(heapfile->file_ptr_) << "\n";
             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+            std::cout << "File Pointer Position Page ID (Exit Function): " << " - " << ftell(heapfile->file_ptr_) << "\n" << std::endl;
+            // print_heapfile_directory(heapfile);
             // std::cout << "PROBLEM NOT HERE\n\n" << std::endl;
             delete[] meta_buff;
             return 2;
@@ -111,10 +121,10 @@ namespace dbms::heap_file
                 {
                     if (meta_dir[i] != 0 && meta_dir[i + 2] == 0)
                     {
-                        // Offset from the beginning of heapfile directory
+                        
                         int offset = meta_dir[i];
 
-                        if (std::fseek(heapfile->file_ptr_, offset, SEEK_SET) != 0) {
+                        if (std::fseek(heapfile->file_ptr_, offset + heapfile->page_size_, SEEK_SET) != 0) {
                             // Handle error
                             std::cerr << "Seek Did Not Work" << std::endl;
                             std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
@@ -125,7 +135,11 @@ namespace dbms::heap_file
                         // Allocate New_Page
                         char new_page[heapfile->page_size_];
                         std::memset(new_page, 0, heapfile->page_size_);
+                        std::cout << "Page Number : " << i + 2 << "\n";
+                        std::cout << "File Pointer Position Page ID (Before New Page): " << " - " << ftell(heapfile->file_ptr_) << "\n";
                         fwrite(new_page, sizeof(char), heapfile->page_size_, heapfile->file_ptr_);
+                        std::cout << "File Pointer Position Page ID (After New Page): " << " - " << ftell(heapfile->file_ptr_) << "\n";
+
 
                         // Update metadata
                         meta_dir[1]++; 
@@ -135,8 +149,11 @@ namespace dbms::heap_file
                         // Rewrite the buffer into the page
                         // Set the file pointer back to the start of the file
                         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                        std::cout << "File Pointer Position Page ID (Rewrite Dir): " << " - " << ftell(heapfile->file_ptr_) << "\n";
                         fwrite(reinterpret_cast<char*>(meta_dir), sizeof(char), heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
+                        std::cout << "File Pointer Position Page ID (After Rewrite): " << " - " << ftell(heapfile->file_ptr_) << "\n" << std::endl;
                         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+                        std::cout << "File Pointer Position Page ID (Exit Function): " << " - " << ftell(heapfile->file_ptr_) << "\n" << std::endl;
                         // std::cout << "\n\nPROBLEM NOT HERE PART TWO\n\n" << std::endl;
                         delete[] meta_buff;
                         return i + 2;
@@ -161,7 +178,7 @@ namespace dbms::heap_file
         }
 
         // print_page_records(page);
-
+        // std::cout << "\nFile Pointer Position Page ID (Initial): " << pid << " - " << ftell(heapfile->file_ptr_) << std::endl;
         int offset_dir = ftell(heapfile->file_ptr_); 
         int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
         char* meta_buff = new char[meta_effective_size];
@@ -180,6 +197,8 @@ namespace dbms::heap_file
             return;
         }
 
+        // std::cout << "File Pointer Position Page ID (After Seek): " << pid << " - " << ftell(heapfile->file_ptr_) << std::endl;
+
         // std::cout << "\n\nPROBLEM NOT HERE\n\n" << std::endl;
 
         // Write the page data to the file
@@ -191,7 +210,11 @@ namespace dbms::heap_file
             return;
         }
 
+        // std::cout << "File Pointer Position Page ID: (After Write) " << pid << " - " << ftell(heapfile->file_ptr_) << std::endl;
+
        std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
+
+    //    std::cout << "File Pointer Position Page ID: (At Return) " << pid << " - " << ftell(heapfile->file_ptr_) << "\n" << std::endl;
        delete[] meta_buff;
     }
 
@@ -222,7 +245,7 @@ namespace dbms::heap_file
         }
 
         // Allocate memory for reading the page data
-        char page_buffer[heapfile->page_size_];
+        char* page_buffer = new char[heapfile->page_size_];
 
         // Read the page data from the file
         if (fread(page_buffer, sizeof(char), heapfile->page_size_, heapfile->file_ptr_) != heapfile->page_size_)
@@ -237,6 +260,7 @@ namespace dbms::heap_file
         std::memcpy(reinterpret_cast<char*>(page->data_), page_buffer, heapfile->page_size_);
         std::fseek(heapfile->file_ptr_, offset_dir, SEEK_SET);
         delete[] meta_buff;
+        delete[] page_buffer;
     }
 
     int heapfile_capacity(int page_size, int address_size)
@@ -265,7 +289,7 @@ namespace dbms::heap_file
         int* meta_dir = reinterpret_cast<int*>(metadata);
         for (int i = 0; i < heapfile->meta_data_size_; i++)
         {
-            std::cout << "Slot [" << i + 1 << "]: " << meta_dir[i] << std::endl;  
+            std::cout << "Slot [" << i << "]: " << meta_dir[i] << std::endl;  
         }
 
         // Set the file pointer back to the start of the file
@@ -295,9 +319,17 @@ namespace dbms::heap_file
     
     void csv_to_heapfile(const char* csv_file, const char* heapfile, const int page_size)
     {
-        FILE* file = fopen(heapfile, "r+");
+        FILE* file = fopen(heapfile, "rb+");
         std::string input = csv_file;
         std::ifstream csv_input(input);
+
+        int heapfile_page_cap = heapfile_capacity(page_size, 32);
+        int heapfile_slots = heapfile_page_cap * 2 + 2;
+        if (heapfile_page_cap < 1)
+        {
+            std::cerr << "NO RECORDS CAN BE ADDED TO PAGE SIZE: " << page_size << std::endl;
+            return;
+        }
 
         if (!csv_input.is_open())
         {
@@ -327,16 +359,16 @@ namespace dbms::heap_file
         // Create a Heapfile Object
         Heapfile *heapfile_new = new Heapfile;
         init_heapfile(heapfile_new, page_size, file);
+        std::cout << "\nFile Pointer Position I: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
         int page_id = alloc_page(heapfile_new);
         int heapfile_count = 1;
         // Page 
         Page *page_writer = new Page;
-        std::cout << "\nPage Record Capacity: " << page_record_capacity(page_size) << std::endl;
         init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
-        int heapfile_page_cap = heapfile_capacity(page_size, 32);
         int prev_file_ptr = ftell(heapfile_new->file_ptr_);
         int record_count{0};
         int test_count{0};
+        
 
 
         // Cases
@@ -363,23 +395,41 @@ namespace dbms::heap_file
 
             if (add_fixed_len_page(page_writer, &record) == -1)
             {
-                if ((page_id/2) < heapfile_page_cap)
+                if ((page_id/2) <= heapfile_slots)
                 {
-                    std::cout << "Page ID: " << page_id << std::endl;
-                    print_page_records(page_writer);
+                    // std::cout << "Page ID: " << page_id << std::endl;
+                    // print_page_records(page_writer);
+                    // std::cout << "\nFile Pointer Position I: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     write_page(page_writer, heapfile_new, page_id);
                     delete[] static_cast<char*>(page_writer->data_);
+                    /* Page *test_read_page = new Page;
+                    init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+                    read_page(heapfile_new, page_id, test_read_page);
+                    print_page_records(test_read_page);
+                    delete[] static_cast<char*>(test_read_page->data_);
+                    delete test_read_page; */
                     init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
                     add_fixed_len_page(page_writer, &record);
                     page_id = alloc_page(heapfile_new);
+                    std::cout << "PAGE RETURNED: " << page_id << std::endl;
                 
                 }
                 else
                 {
-                    std::cout << "Page ID: " << page_id << std::endl;
-                    print_page_records(page_writer);
+                    // std::cout << "Page ID: " << page_id << std::endl;
+                    // print_page_records(page_writer);
+                    // std::cout << "\nFile Pointer Position II (before): " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     write_page(page_writer, heapfile_new, page_id);
+                    // std::cout << "\nFile Pointer Position II: (after) " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     delete[] static_cast<char*>(page_writer->data_);
+
+                    /* Page *test_read_page = new Page;
+                    init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+                    read_page(heapfile_new, page_id, test_read_page);
+                    print_page_records(test_read_page);
+                    delete[] static_cast<char*>(test_read_page->data_);
+                    delete test_read_page; */
+                    
                     init_fixed_len_page(page_writer, page_size, page_record_capacity(page_size) + 2);
                     add_fixed_len_page(page_writer, &record);
                     page_id = 0;
@@ -409,16 +459,91 @@ namespace dbms::heap_file
             
             else if (csv_input.eof())
             {
-                std::cout << "Page ID: " << page_id << std::endl;
-                print_page_records(page_writer);
+                // std::cout << "Page ID: " << page_id << std::endl;
+                // print_page_records(page_writer);
+                // std::cout << "\nFile Pointer Position III: (before) " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                 write_page(page_writer, heapfile_new, page_id);
+                // std::cout << "\nFile Pointer Position III: (after) " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
+                /* Page *test_read_page = new Page;
+                init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+                read_page(heapfile_new, page_id, test_read_page);
+                print_page_records(test_read_page);
+                delete[] static_cast<char*>(test_read_page->data_);
+                delete test_read_page; */
 
             }
 
             cleanup_record(record);
         }
 
-        std::fseek(heapfile_new->file_ptr_, 0, SEEK_SET);
+        /* Page *test_read_page = new Page;
+        init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+        read_page(heapfile_new, 23 , test_read_page);
+        print_page_records(test_read_page);
+        delete[] static_cast<char*>(test_read_page->data_);
+        delete test_read_page; */
+
+        /* std::fseek(heapfile_new->file_ptr_, 0, SEEK_SET);
+        int offset_dir = ftell(heapfile_new->file_ptr_); 
+        int meta_effective_size = heapfile_new->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile_new->file_ptr_);
+        std::fseek(heapfile_new->file_ptr_, offset_dir, SEEK_SET);
+        int* meta_dir = reinterpret_cast<int*>(meta_buff);
+        int total_pages = 2 * meta_dir[1];
+
+        for (int i = 2; i <= total_pages; i += 2)
+        {
+            if (meta_dir[i] > 0)
+            {
+                Page *test_read_page = new Page;
+                int offset_dir = ftell(heapfile_new->file_ptr_); 
+                int meta_effective_size = heapfile_new->meta_data_size_ * sizeof(int);
+                char* meta_buff = new char[meta_effective_size];
+                std::memset(meta_buff, 0, meta_effective_size);
+                std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile_new->file_ptr_);
+                std::fseek(heapfile_new->file_ptr_, offset_dir, SEEK_SET);
+                int* meta_dir = reinterpret_cast<int*>(meta_buff);
+                int total_pages = 2 * meta_dir[1];
+                std:: cout << "TOTAL PAGES: " << total_pages/2 << std::endl;
+                
+                init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+                read_page(heapfile_new, i, test_read_page);
+                std::cout << "\n\nPage Record Count: " << get_record_count(test_read_page) << std::endl;
+                print_page_records(test_read_page);
+                delete[] static_cast<char*>(test_read_page->data_);
+                delete test_read_page;
+                
+            }
+
+        } */
+
+        // std::cout << "\nFile Pointer Position IV: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
+        write_page(page_writer, heapfile_new, page_id);
+        // std::cout << "\nFile Pointer Position IV: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
+        Page *test_read_page = new Page;
+        init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
+        read_page(heapfile_new, page_id - 2, test_read_page);
+        print_page_records(test_read_page);
+        delete[] static_cast<char*>(test_read_page->data_);
+        delete test_read_page;
+
+        
+        Page *test_ = new Page;
+        init_fixed_len_page(test_, page_size, page_record_capacity(page_size) + 2);
+        read_page(heapfile_new, page_id, test_);
+        print_page_records(test_);
+        delete[] static_cast<char*>(test_->data_);
+        delete test_;
+
+        
+
+        // print_heapfile_directory(heapfile_new);
+
+        
+        // delete[] meta_buff;
+
         fclose(heapfile_new->file_ptr_);
         delete[] static_cast<char*>(page_writer->data_);
         delete page_writer;
@@ -427,70 +552,77 @@ namespace dbms::heap_file
     }
 
 
-    void scan(const char* heapfile, const int page_size) 
-    {
-        FILE* file = fopen(heapfile, "r");
-        if (!file) {
-            std::cerr << "Error opening heapfile: " << heapfile << std::endl;
-            return;
-        }
+    // void scan(const char* heapfile, const int page_size) 
+    // {
+    //     FILE* file = fopen(heapfile, "r");
+    //     if (!file) {
+    //         std::cerr << "Error opening heapfile: " << heapfile << std::endl;
+    //         return;
+    //     }
 
-        std::fseek(file, 0, SEEK_SET);
+    //     std::fseek(file, 0, SEEK_SET);
 
-        Heapfile* heapfile_obj = new Heapfile;
-        init_heapfile(heapfile_obj, page_size, file);
-        int dir_offset = ftell(heapfile_obj->file_ptr_);
+    //     Heapfile* heapfile_obj = new Heapfile;
+    //     init_heapfile(heapfile_obj, page_size, file);
+    //     int dir_offset = ftell(heapfile_obj->file_ptr_);
+    //     int record_no = 0;
 
-        RecordIterator record_it(heapfile_obj);
+    //     RecordIterator record_it(heapfile_obj);
 
-        while (record_it.hasNext())
-        {
-            std::cout << "RECORD PRESENT" << std::endl;
-            Record record_read = record_it.next();
-            print_record(record_read);
-        }
+    //     while (record_it.hasNext())
+    //     {
+    //         std::cout << "Record No: " << ++record_no << std::endl;
+    //         Record record_read = record_it.next();
+    //         print_record(record_read);
+    //     }
+
+    //     heapfile_obj->file_ptr_ = nullptr;
+    //     delete heapfile_obj;
 
 
-        /* // Initialize a Heapfile object
-        Heapfile* heapfile_obj = new Heapfile;
-        init_heapfile(heapfile_obj, page_size, file);
-        int dir_offset = ftell(heapfile_obj->file_ptr_);
 
-        // Allocate a Page object
-        Page* page = new Page;
-        init_fixed_len_page(page, page_size, page_record_capacity(page_size) + 2);
-        int* heapfile_dir = get_heapfile_directory(heapfile_obj);
-        int pages_read{0};
 
-        Record record;
-        int record_no{1};
 
-        // Loop through each page in the heapfile
-        for (int pid = 2; pages_read < heapfile_dir[1]; pid += 2) {
-            read_page(heapfile_obj, pid, page);
-            fseek(heapfile_obj->file_ptr_, dir_offset, SEEK_SET);
-            pages_read++;
-            int* slot_dir = get_slot_directory(page);
+    //     /* // Initialize a Heapfile object
+    //     Heapfile* heapfile_obj = new Heapfile;
+    //     init_heapfile(heapfile_obj, page_size, file);
+    //     int dir_offset = ftell(heapfile_obj->file_ptr_);
 
-            // Loop through each record in the page and print it
-            for (int i = page->slot_size_ - 3; i >= 0; --i)
-            {
-                if (slot_dir[i] != -1)
-                {
-                    std::cout << "Record [" << record_no << "] :" << std::endl;
-                    record_no++;
-                    read_fixed_len_page(page, i, &record);
-                    print_record(record);
-                    cleanup_record(record);
-                }
-            }
-        }
+    //     // Allocate a Page object
+    //     Page* page = new Page;
+    //     init_fixed_len_page(page, page_size, page_record_capacity(page_size) + 2);
+    //     int* heapfile_dir = get_heapfile_directory(heapfile_obj);
+    //     int pages_read{0};
 
-        // Clean up
-        fclose(file);
-        delete heapfile_obj;
-        delete[] static_cast<char*>(page->data_);
-        delete page; */
-    }
+    //     Record record;
+    //     int record_no{1};
+
+    //     // Loop through each page in the heapfile
+    //     for (int pid = 2; pages_read < heapfile_dir[1]; pid += 2) {
+    //         read_page(heapfile_obj, pid, page);
+    //         fseek(heapfile_obj->file_ptr_, dir_offset, SEEK_SET);
+    //         pages_read++;
+    //         int* slot_dir = get_slot_directory(page);
+
+    //         // Loop through each record in the page and print it
+    //         for (int i = page->slot_size_ - 3; i >= 0; --i)
+    //         {
+    //             if (slot_dir[i] != -1)
+    //             {
+    //                 std::cout << "Record [" << record_no << "] :" << std::endl;
+    //                 record_no++;
+    //                 read_fixed_len_page(page, i, &record);
+    //                 print_record(record);
+    //                 cleanup_record(record);
+    //             }
+    //         }
+    //     }
+
+    //     // Clean up
+    //     fclose(file);
+    //     delete heapfile_obj;
+    //     delete[] static_cast<char*>(page->data_);
+    //     delete page; */
+    // }
 
 }
