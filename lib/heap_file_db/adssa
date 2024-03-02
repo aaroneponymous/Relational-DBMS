@@ -1,0 +1,207 @@
+/* void insert_csv_to_heapfile(const char* heapfile, const char* csv_file, const int page_size) 
+    {
+        FILE* file = fopen(heapfile, "rb+");
+        if (!file) {
+            std::cerr << "Error opening heapfile: " << heapfile << std::endl;
+            return;
+        }
+
+        int prev_file_ptr = ftell(file);
+        Heapfile* heapfile_obj = new Heapfile;
+        init_heapfile_read(heapfile_obj, page_size, file);
+        int meta_effective_size = heapfile_obj->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile_obj->file_ptr_);
+        std::fseek(heapfile_obj->file_ptr_, prev_file_ptr, SEEK_SET);
+        int* heapfile_dir = reinterpret_cast<int*>(meta_buff);
+
+        // print_heapfile_directory(heapfile_obj);
+        
+        int last_allocated_page = heapfile_dir[1];
+        int prev_page = last_allocated_page * 2;
+
+        std::cout << "LAST ALLOCATED PAGE: " << last_allocated_page << std::endl;
+        
+        int heapfile_page_cap = heapfile_capacity(page_size, 32);
+        
+        Page* last_page = new Page;
+        init_fixed_len_page(last_page, page_size, page_record_capacity(page_size) + 2);
+        read_page(heapfile_obj, prev_page, last_page);
+        // print_slot_dir(last_page);
+        
+        int remaining_slots = fixed_len_page_freeslots(last_page);
+        int next_heap_exists = heapfile_dir[0];
+
+        // std::cout << "REMAINING SLOTS " << remaining_slots << std::endl;        
+
+
+
+        std::ifstream csv_input(csv_file);
+        std::string line;
+        Record record;
+
+        while (std::getline(csv_input, line)) {
+
+            std::stringstream line_stream(line);
+            std::string cell;
+            Record record;
+
+            while (std::getline(line_stream, cell, ','))
+            {
+                char *cell_str = new char[cell.length() + 1];
+                std::strcpy(cell_str, cell.c_str());
+                record.push_back(cell_str);
+            }
+
+            // print_record(record);
+
+            if (remaining_slots > 0)
+            {
+                // Insert record into the last allocated page
+                add_fixed_len_page(last_page, &record);
+                remaining_slots--;
+
+                // Check if the last page is full after inserting the record
+                if (remaining_slots == 0) 
+                {
+        
+                    write_page(last_page, heapfile_obj, prev_page);
+                    delete[] static_cast<char*>(last_page->data_);
+                }
+                
+            }
+            else
+            {
+                // Allocate a new page if the heapfile is not full
+                if (last_allocated_page < heapfile_page_cap) 
+                {
+                    // std::cout << "LAST ALLOCATED PAGE : " << last_allocated_page << " HEAPFILE PAGE CAP : " << heapfile_page_cap << " PREVIOUS PAGE INDEX : " << prev_page << std::endl;
+                    if (last_page->data_)
+                    {
+                        delete[] static_cast<char*>(last_page->data_);
+                    }
+
+                    prev_page = alloc_page(heapfile_obj);
+                    if (prev_page == -1)
+                    {
+                        add_new_heap(heapfile_obj, heapfile_dir[0], prev_file_ptr, heapfile_dir);
+                        prev_page = alloc_page(heapfile_obj);
+                        last_allocated_page = heapfile_dir[1];
+                        init_fixed_len_page(last_page, page_size, page_record_capacity(page_size) + 2);
+                        add_fixed_len_page(last_page, &record);
+
+                        remaining_slots = fixed_len_page_freeslots(last_page);
+                        // std::cout << "REMAINING SLOTS " << remaining_slots << std::endl;
+
+
+                        // Insert record into the newly allocated page
+                        add_fixed_len_page(last_page, &record);
+                        // print_page_records(last_page);
+                        remaining_slots--;
+
+                        if (remaining_slots == 0) 
+                        {
+                        
+                            write_page(last_page, heapfile_obj, prev_page);
+                            delete[] static_cast<char*>(last_page->data_);
+                        }
+                        
+                    }
+
+                    last_allocated_page++;
+                    // std::cout << "LAST ALLOCATED PAGE : " << last_allocated_page << " HEAPFILE PAGE CAP : " << heapfile_page_cap << " PREVIOUS PAGE INDEX : " << prev_page << std::endl;
+                    init_fixed_len_page(last_page, page_size, page_record_capacity(page_size) + 2);
+                    remaining_slots = fixed_len_page_freeslots(last_page);
+                    // std::cout << "REMAINING SLOTS " << remaining_slots << std::endl;
+
+
+                    // Insert record into the newly allocated page
+                    add_fixed_len_page(last_page, &record);
+                    // print_page_records(last_page);
+                    remaining_slots--;
+
+                    if (remaining_slots == 0) 
+                    {
+                        write_page(last_page, heapfile_obj, prev_page);
+                
+                    }
+                } 
+
+                else 
+                {
+                     if (last_page->data_)
+                    {
+                        delete[] static_cast<char*>(last_page->data_);
+                    }
+
+                    // FIXME: HAVE YET TO TEST THIS SHIT
+
+                    add_new_heap(heapfile_obj, heapfile_dir[0], prev_file_ptr, heapfile_dir);
+                    // Allocate Page
+                    prev_page = alloc_page(heapfile_obj);
+                    last_allocated_page = heapfile_dir[1];
+                    init_fixed_len_page(last_page, page_size, page_record_capacity(page_size) + 2);
+                    add_fixed_len_page(last_page, &record);
+
+                    remaining_slots = fixed_len_page_freeslots(last_page);
+                    // std::cout << "REMAINING SLOTS " << remaining_slots << std::endl;
+
+
+                    // Insert record into the newly allocated page
+                    add_fixed_len_page(last_page, &record);
+                    // print_page_records(last_page);
+                    remaining_slots--;
+
+                    if (remaining_slots == 0) 
+                    {
+            
+                        write_page(last_page, heapfile_obj, prev_page);
+                        delete[] static_cast<char*>(last_page->data_);
+                    }
+                }
+
+            }
+
+            cleanup_record(record);
+        }
+
+        if (last_page->data_)
+        {
+            write_page(last_page, heapfile_obj, last_allocated_page);
+            delete[] static_cast<char*>(last_page->data_);
+            
+        }
+
+        // Clean up resources
+        // delete[] meta_buff;
+        fclose(file);
+        delete heapfile_obj;
+        delete last_page;
+    }
+
+
+    void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir)
+    {
+        
+        
+        int new_heap_dir_offset = std::fseek(heapfile->file_ptr_, 0, SEEK_END);
+        int offset_to_newheap = new_heap_dir_offset - prev_offset;
+        heapfile_dir[0] = offset_to_newheap;
+        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
+        fwrite(reinterpret_cast<char*>(heapfile_dir), sizeof(char), 
+                    heapfile->meta_data_size_ * sizeof(int), heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, 0, SEEK_END);
+        prev_file_ptr = ftell(heapfile->file_ptr_);
+        
+        // Initialize Heapfile Again
+        init_heapfile(heapfile, heapfile->page_size_, heapfile->file_ptr_);
+        int meta_effective_size = heapfile->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        delete[] reinterpret_cast<char*>(heapfile_dir);
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
+        heapfile_dir = reinterpret_cast<int*>(meta_buff);
+
+    } */

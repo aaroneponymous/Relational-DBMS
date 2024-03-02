@@ -70,6 +70,7 @@ namespace dbms::page
 
     int get_record_count(Page *page);
 
+
     /**
      * Returns an int* to the beginning of the slot directory
      * NOTE: When traversing do in reverse: slot_dir[page->size - 1]

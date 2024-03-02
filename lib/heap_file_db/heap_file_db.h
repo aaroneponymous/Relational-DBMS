@@ -48,6 +48,8 @@ namespace dbms::heap_file
     */
     void init_heapfile(Heapfile *heapfile, int page_size, FILE *file);
 
+    void init_heapfile_read(Heapfile *heapfile, int page_size, FILE *file);
+
     /**
      * Allocate another page in the heapfile.  This grows the file by a page.
      */
@@ -75,16 +77,125 @@ namespace dbms::heap_file
     
     int heapfile_metadata_size(int heapfile_page_cap);
 
+    void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir);
+
     // [x]: Executables
     void csv_to_heapfile(const char* csv_file, const char* heapfile, const int page_size);
     void scan(const char* heapfile, const int page_size);
+    void insert_csv_to_heapfile(const char* heapfile, const char* csv_file, const int page_size);
 
 
 
     // The central functionality of a heap file is enumeration of records
     // [ ]: RecordIterator Class Implementation
 
-    class RecordIterator
+    class RecordIterator 
+    {
+        private:
+            Heapfile *heapfile_;
+            Page *curPage_;
+
+        public:
+
+            int total_pages{0};
+            int pages_read{0};
+            PageID next_page_index{0};
+        
+            int total_records{0};
+            int records_read{0};
+            int next_record_index{0};
+
+            int* heap_file_dir{nullptr};
+            int* page_dir{nullptr};
+
+            // Constructor
+            // Constructor
+            RecordIterator(Heapfile *heapfile): heapfile_(heapfile), curPage_(nullptr)
+            {
+                heap_file_dir = get_heapfile_directory(heapfile_);
+                total_pages = heap_file_dir[1];
+                next_page_index = 2;
+                curPage_ = new Page;
+
+                if (total_pages > 0)
+                {
+                    
+                    init_fixed_len_page(curPage_, heapfile_->page_size_,page_record_capacity(heapfile_->page_size_) + 2);
+                    read_page(heapfile_, next_page_index, curPage_);
+                    pages_read++;
+                    page_dir = get_slot_directory(curPage_);
+                    total_records = get_record_count(curPage_);
+                    next_record_index = curPage_->slot_size_ - 2;
+
+                }
+                
+            }
+
+
+            // Destructor
+            ~RecordIterator()
+            {
+                // Delete the dynamically allocated Page object
+                if (curPage_ != nullptr) {
+                    delete curPage_;
+                }
+            }
+
+
+            // Copy Constructor and Assignment Operator
+            // [ ] Disable for now
+            RecordIterator(const RecordIterator &other) = delete;
+            RecordIterator &operator=(const RecordIterator &other) = delete;
+
+            // Move Constructor and Copy Constructor (R Values)
+            RecordIterator(RecordIterator &&other) noexcept = default;
+            RecordIterator &operator=(RecordIterator &&other) noexcept = default;
+
+            Record next()
+            {
+                next_record_index--;
+                records_read++;
+                Record record;
+                std::cout << "Record Index: " << next_record_index << std::endl;
+                read_fixed_len_page(curPage_, next_record_index, &record);
+                return record;
+            }
+
+            bool hasNext() 
+            {
+                // Check if there are more records in the current page
+                if (records_read <= total_records)
+                {
+                    return true;
+                }
+
+                // Check if there are more pages in the heapfile
+                /* if (pages_read < total_pages)
+                {
+                    // Move to the next page
+                    next_page_index += 2;
+                    int offset_page = heap_file_dir[next_page_index];
+                    delete[] static_cast<char*>(curPage_->data_);
+                    curPage_->data_ = nullptr;
+                    init_fixed_len_page(curPage_, heapfile_->page_size_, page_record_capacity(heapfile_->page_size_) + 2);
+                    read_page(heapfile_, next_page_index, curPage_);
+                    pages_read++;
+                    
+                    records_read = 0;
+                    page_dir = get_slot_directory(curPage_);
+                    total_records = get_record_count(curPage_);
+                    next_record_index = curPage_->slot_size_ - 2;
+
+                    return true;
+
+                } */
+
+                // No more records in the heapfile
+                return false;
+            }
+    };
+
+    /* class RecordIterator
     {
         private:
             Heapfile *heapfile_;
@@ -146,7 +257,7 @@ namespace dbms::heap_file
 
 
 
-    };
+    }; */
 
 
     

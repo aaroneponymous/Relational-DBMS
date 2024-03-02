@@ -172,6 +172,7 @@ namespace dbms::page
         return page_dir[page->slot_size_ - 1];
     }
 
+
     // Assume each slot stores an offset as an int
     int *get_slot_directory(Page *page)
     {
@@ -231,8 +232,8 @@ namespace dbms::page
         }
 
         int *slot_dir = get_slot_directory(page);
-        std::cout << "\nPrinting Slot Directory\n" << std::endl;
-        print_slot_dir(page);
+        /* std::cout << "\nPrinting Slot Directory\n" << std::endl;
+        print_slot_dir(page); */
 
         std::cout << "Printing records in the page:" << std::endl;
         int record_count{0};
