@@ -12,18 +12,44 @@
 using namespace dbms::heap_file;
 using namespace dbms::page;
 
-    /* */
+
 
 int main() {
 
 
     // BUG: Page Size Has to be 16384 to Insert Records?
-    int page_size = 1500;
-    int page_cap = page_record_capacity(page_size);
+    int page_size = 12000;
+    int record_cap = page_record_capacity(page_size);
+    int heap_cap = heapfile_capacity(page_size, 32);
+
+    std::cout << "Heap Cap : " << heap_cap << std::endl;
+    std::cout << "Record Cap : " << record_cap << std::endl;
+
+    /* std::cout << " Base Heap ID: " << calculate_heap_id(2, heap_cap) << std::endl;
+    std::cout << " Base Page ID: " << calculate_base_page_id(2, heap_cap) << std::endl;
+    std::cout << " Base Heap ID: " << calculate_heap_id(4, heap_cap) << std::endl;
+    std::cout << " Base Page ID: " << calculate_base_page_id(4, heap_cap) << std::endl;
+    std::cout << " Base Heap ID: " << calculate_heap_id(22, heap_cap) << std::endl;
+    std::cout << " Base Page ID: " << calculate_base_page_id(22, heap_cap) << std::endl;
+    std::cout << " Base Heap ID: " << calculate_heap_id(122, heap_cap) << std::endl;
+    std::cout << " Base Page ID: " << calculate_base_page_id(122, heap_cap) << std::endl;
+    std::cout << " Base Heap ID: " << calculate_heap_id(224, heap_cap) << std::endl;
+    std::cout << " Base Page ID: " << calculate_base_page_id(224, heap_cap) << std::endl; */
+
+    RecordID new_record;
+    new_record.page_id_ = 2;
+    new_record.slot_ = 10;
+
+
+
     csv_to_heapfile("people-100.csv", "heapfile-output", page_size);
+    // update("heapfile-output", new_record, 0, "1234567891", page_size);
     scan("heapfile-output", page_size);
-    insert_csv_to_heapfile("heapfile-output", "people-test.csv", page_size);
-    scan("heapfile-output", page_size);
+
+
+
+    /* insert_csv_to_heapfile("heapfile-output", "people-test.csv", page_size);
+    scan("heapfile-output", page_size); */
     
     /* Heapfile *tester_it = new Heapfile;
     FILE *file = fopen("heapfile-output", "r+");

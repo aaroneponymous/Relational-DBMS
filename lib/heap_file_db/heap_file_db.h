@@ -79,12 +79,16 @@ namespace dbms::heap_file
 
     void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir);
 
+    int calculate_base_page_id(int page_id, int page_cap);
+    
+    int calculate_heap_id(int page_id, int page_cap);
+
+
     // [x]: Executables
     void csv_to_heapfile(const char* csv_file, const char* heapfile, const int page_size);
     void scan(const char* heapfile, const int page_size);
     void insert_csv_to_heapfile(const char* heapfile, const char* csv_file, const int page_size);
-
-
+    bool update(const char* heapfile, const RecordID& record_id, int attribute_id, const char* new_value, const int page_size);
 
     // The central functionality of a heap file is enumeration of records
     // [ ]: RecordIterator Class Implementation

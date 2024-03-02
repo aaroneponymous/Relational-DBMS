@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/write_fixed_len_pages.dir/lib/page_layout_db/write_fixed_len_pages.cpp.o CMakeFiles/write_fixed_len_pages.dir/lib/page_layout_db/page_layout_db.cpp.o CMakeFiles/write_fixed_len_pages.dir/lib/record_db/record_db.cpp.o -o ../exe/write_fixed_len_pages 

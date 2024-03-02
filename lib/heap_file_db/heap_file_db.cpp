@@ -447,6 +447,7 @@ namespace dbms::heap_file
                     // print_page_records(page_writer);
                     // std::cout << "\nFile Pointer Position I: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     write_page(page_writer, heapfile_new, page_id);
+                    // print_slot_dir(page_writer);
                     delete[] static_cast<char*>(page_writer->data_);
                     /* Page *test_read_page = new Page;
                     init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
@@ -466,6 +467,7 @@ namespace dbms::heap_file
                     // print_page_records(page_writer);
                     // std::cout << "\nFile Pointer Position II (before): " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     write_page(page_writer, heapfile_new, page_id);
+                    // print_slot_dir(page_writer);
                     // std::cout << "\nFile Pointer Position II: (after) " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
                     delete[] static_cast<char*>(page_writer->data_);
 
@@ -567,6 +569,7 @@ namespace dbms::heap_file
 
         // std::cout << "\nFile Pointer Position IV: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
         write_page(page_writer, heapfile_new, page_id);
+        // print_slot_dir(page_writer);
         // std::cout << "\nFile Pointer Position IV: " << ftell(heapfile_new->file_ptr_) << "\n" << std::endl;
         /* Page *test_read_page = new Page;
         init_fixed_len_page(test_read_page, page_size, page_record_capacity(page_size) + 2);
@@ -644,6 +647,7 @@ namespace dbms::heap_file
             
             if (heapfile_dir[0] == 0) {
                 // Single heapfile, print its contents and exit loop
+                // print_heapfile_directory(current_heapfile);
                 print_heapfile_contents(current_heapfile, page_size);
                 break;
             } else {
@@ -668,7 +672,6 @@ namespace dbms::heap_file
         delete current_heapfile;
     }
 
-     
     void insert_csv_to_heapfile(const char* heapfile, const char* csv_file, const int page_size) 
     {
         FILE* file = fopen(heapfile, "rb+");
@@ -741,7 +744,7 @@ namespace dbms::heap_file
                     // std::cout << "LAST ALLOCATED PAGE : " << last_allocated_page << " HEAPFILE PAGE CAP : " << heapfile_page_cap << " PREVIOUS PAGE INDEX : " << prev_page << std::endl;
                     // print_page_records(last_page);
                     write_page(last_page, heapfile_obj, prev_page);
-                    delete[] static_cast<char*>(last_page->data_);
+                    // delete[] static_cast<char*>(last_page->data_);
                 }
                 
             }
@@ -885,6 +888,164 @@ namespace dbms::heap_file
         delete last_page;
     }
 
+    void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir)
+    {
+        // Calculate offset to the new heap directory
+        int new_heap_dir_offset = std::fseek(heapfile->file_ptr_, 0, SEEK_END);
+        int offset_to_newheap = new_heap_dir_offset - prev_offset;
+        
+        // Update heapfile directory with the offset
+        heapfile_dir[0] = offset_to_newheap;
+
+        // Write the updated directory to the file
+        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
+        fwrite(heapfile_dir, sizeof(int), heapfile->meta_data_size_, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, 0, SEEK_END);
+        prev_file_ptr = ftell(heapfile->file_ptr_);
+        
+        // Initialize Heapfile Again
+        init_heapfile(heapfile, heapfile->page_size_, heapfile->file_ptr_);
+
+        // Deallocate memory for the old heapfile directory
+        delete[] heapfile_dir;
+
+        // Read the new heapfile directory from the file
+        heapfile_dir = new int[heapfile->meta_data_size_];
+        std::fread(heapfile_dir, sizeof(int), heapfile->meta_data_size_, heapfile->file_ptr_);
+        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
+    }
+
+    int calculate_base_page_id(int page_id, int page_cap) {
+        // If page_cap is zero, return an error value (-1 for example)
+        if (page_cap == 0) {
+            std::cerr << "Error: Page capacity is zero." << std::endl;
+            return -1;
+        }
+
+        // If page_id is less than page_cap, return page_id
+        if (page_id < page_cap) {
+            return page_id;
+        } else {
+            // Calculate the number of heap directories ahead of the current page
+            int num_heap_dirs_ahead = (page_id - 1) / page_cap;
+            // Calculate the base page ID
+            int base_page_id = page_id - num_heap_dirs_ahead * page_cap;
+            return base_page_id;
+        }
+    }
+
+    int calculate_heap_id(int page_id, int page_cap) {
+        // If page_cap is zero, return an error value (-1 for example)
+        if (page_cap == 0) {
+            std::cerr << "Error: Page capacity is zero." << std::endl;
+            return -1;
+        }
+
+        // Calculate the heap ID based on the page ID
+        int heap_id = (page_id - 2) / (page_cap * 2) + 1;
+
+        return heap_id;
+    }
+
+
+    // # Update one attribute of a single record in the heap file given its record ID
+    // # <attribute_id> is the index of the attribute to be updated (e.g. 0 for the first attribute, 1 for the second attribute, etc.)
+    // # <new_value> will have the same fixed length (10 bytes)
+    // $ update <heapfile> <record_id> <attribute_id> <new_value> <page_size>
+
+    bool update(const char* heapfile, const RecordID& record_id, int attribute_id, const char* new_value, const int page_size) 
+    {
+        int heap_cap = heapfile_capacity(page_size, 32);
+        int page_id = calculate_base_page_id(record_id.page_id_, heap_cap);
+        int heap_id = calculate_heap_id(record_id.page_id_, heap_cap);
+        int place_holder{1};
+        int record_slot = record_id.slot_;
+        
+
+        FILE* file = fopen(heapfile, "rb+");
+        if (!file) {
+            std::cerr << "Error opening heapfile: " << heapfile << std::endl;
+            return false;
+        }
+
+        
+
+        int prev_file_ptr = ftell(file);
+        Heapfile* heapfile_obj = new Heapfile;
+        init_heapfile(heapfile_obj, page_size, file);
+        int meta_effective_size = heapfile_obj->meta_data_size_ * sizeof(int);
+        char* meta_buff = new char[meta_effective_size];
+        std::memset(meta_buff, 0, meta_effective_size);
+        std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile_obj->file_ptr_);
+        std::fseek(heapfile_obj->file_ptr_, prev_file_ptr, SEEK_SET);
+        int* heapfile_dir = reinterpret_cast<int*>(meta_buff);
+
+        if (heap_id > place_holder)
+        {
+            // Keep Offsetting Until in the Right Directory
+            while (place_holder < heap_id)
+            {
+                int offset_to_next_dir = heapfile_dir[0];
+                std::fseek(heapfile_obj->file_ptr_, offset_to_next_dir, SEEK_SET);
+                delete[] meta_buff;
+                meta_buff = new char[meta_effective_size];
+                std::memset(meta_buff, 0, meta_effective_size);
+                std::fread(meta_buff, sizeof(char), meta_effective_size, heapfile_obj->file_ptr_);
+                std::fseek(heapfile_obj->file_ptr_, offset_to_next_dir, SEEK_SET);
+                heapfile_dir = reinterpret_cast<int*>(meta_buff);
+                prev_file_ptr = offset_to_next_dir;
+                place_holder++;
+            }
+        }
+
+        // Now Updating
+        // Get Page
+        Page* cur_page = new Page;
+        init_fixed_len_page(cur_page, page_size, page_record_capacity(page_size) + 2);
+        read_page(heapfile_obj, prev_file_ptr, cur_page);
+        std::cout << "Heap Cap : " << heap_cap << std::endl;
+        std::cout << "Page ID : " << page_id << std::endl;
+        std::cout << "Record ID : " << record_slot << std::endl;
+
+        print_page_records(cur_page);
+        // Retrieve Record
+        Record record_update;
+        read_fixed_len_page(cur_page, record_slot, &record_update);
+        print_page_records(cur_page);
+
+        // Update the specified attribute with new_value
+        if (attribute_id < record_update.size()) 
+        {
+            record_update[attribute_id] = new_value;
+        } else {
+            std::cerr << "Attribute index out of bounds" << std::endl;
+            fclose(file); // Close file before returning
+            delete[] meta_buff;
+            heapfile_dir = nullptr;
+            return false; // Return false to indicate failure
+        }
+
+        
+        print_page_records(cur_page);
+        // Write the updated record back to the page
+        write_fixed_len_page(cur_page, record_slot, &record_update);
+
+        // Write the page back to the heapfile
+        write_page(cur_page, heapfile_obj, page_id);
+        
+
+        // Clean up resources
+        delete[] static_cast<char*>(cur_page->data_);
+        delete cur_page;
+
+        delete[] meta_buff;
+        heapfile_dir = nullptr;
+        fclose(file);
+
+        return true; 
+
+        
+    }
     /* void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir, char* &meta_buff)
     {
         int new_heap_dir_offset = std::fseek(heapfile->file_ptr_, 0, SEEK_END);
@@ -937,32 +1098,7 @@ namespace dbms::heap_file
 
     } */
 
-    void add_new_heap(Heapfile *heapfile, int prev_offset, int &prev_file_ptr, int* &heapfile_dir)
-    {
-        // Calculate offset to the new heap directory
-        int new_heap_dir_offset = std::fseek(heapfile->file_ptr_, 0, SEEK_END);
-        int offset_to_newheap = new_heap_dir_offset - prev_offset;
-        
-        // Update heapfile directory with the offset
-        heapfile_dir[0] = offset_to_newheap;
-
-        // Write the updated directory to the file
-        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
-        fwrite(heapfile_dir, sizeof(int), heapfile->meta_data_size_, heapfile->file_ptr_);
-        std::fseek(heapfile->file_ptr_, 0, SEEK_END);
-        prev_file_ptr = ftell(heapfile->file_ptr_);
-        
-        // Initialize Heapfile Again
-        init_heapfile(heapfile, heapfile->page_size_, heapfile->file_ptr_);
-
-        // Deallocate memory for the old heapfile directory
-        delete[] heapfile_dir;
-
-        // Read the new heapfile directory from the file
-        heapfile_dir = new int[heapfile->meta_data_size_];
-        std::fread(heapfile_dir, sizeof(int), heapfile->meta_data_size_, heapfile->file_ptr_);
-        std::fseek(heapfile->file_ptr_, prev_file_ptr, SEEK_SET);
-    }
+    
 
 
 
