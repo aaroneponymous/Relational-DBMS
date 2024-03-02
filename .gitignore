@@ -1,0 +1,16 @@
+# Ignore compiled object files
+*.o
+*.out
+
+# Ignore log files
+*.log
+
+# Ignore IDE-specific files and directories
+.idea/
+.vscode/
+
+# Ignore compiled binaries
+/bin/
+
+heapfile-output*
+
